@@ -140,40 +140,39 @@ export default function StudyPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* ヘッダー */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">学習</h1>
-        <p className="text-gray-600">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      {/* ページ説明 */}
+      <div className="mb-6 sm:mb-8">
+        <p className="text-sm sm:text-base text-gray-600">
           あなたのペースで新しいスキルを身につけよう
         </p>
       </div>
 
       {/* 学習ダッシュボード */}
       {progress && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card padding="p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <Card padding="p-3 sm:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{progress.totalContentEnrolled}</div>
-              <div className="text-sm text-gray-600">受講中コンテンツ</div>
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">{progress.totalContentEnrolled}</div>
+              <div className="text-xs sm:text-sm text-gray-600">受講中</div>
             </div>
           </Card>
-          <Card padding="p-4">
+          <Card padding="p-3 sm:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{progress.totalContentCompleted}</div>
-              <div className="text-sm text-gray-600">完了コンテンツ</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">{progress.totalContentCompleted}</div>
+              <div className="text-xs sm:text-sm text-gray-600">完了</div>
             </div>
           </Card>
-          <Card padding="p-4">
+          <Card padding="p-3 sm:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{progress.totalHoursLearned}h</div>
-              <div className="text-sm text-gray-600">総学習時間</div>
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">{progress.totalHoursLearned}h</div>
+              <div className="text-xs sm:text-sm text-gray-600">学習時間</div>
             </div>
           </Card>
-          <Card padding="p-4">
+          <Card padding="p-3 sm:p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{progress.currentStreak}日</div>
-              <div className="text-sm text-gray-600">継続日数</div>
+              <div className="text-xl sm:text-2xl font-bold text-orange-600">{progress.currentStreak}日</div>
+              <div className="text-xs sm:text-sm text-gray-600">継続日数</div>
             </div>
           </Card>
         </div>
@@ -181,8 +180,8 @@ export default function StudyPage() {
 
       {/* 週間目標 */}
       {progress && (
-        <Card className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">📅 今週の学習目標</h3>
+        <Card className="mb-6 sm:mb-8">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">📅 今週の学習目標</h3>
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-600">進捗</span>
             <span className="text-gray-900 font-medium">
@@ -206,9 +205,9 @@ export default function StudyPage() {
 
       {/* おすすめコンテンツ */}
       {recommendedContent.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">🌟 おすすめコンテンツ</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">🌟 おすすめコンテンツ</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {recommendedContent.map((content) => (
               <LearningCard
                 key={content.id}
@@ -262,16 +261,17 @@ export default function StudyPage() {
       </div>
 
       {/* フィルター */}
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 lg:gap-4">
         <Input
           placeholder="コンテンツを検索..."
           value={filters.search}
           onChange={handleSearch}
+          className="w-full"
         />
         <select
           value={filters.category}
           onChange={handleCategoryChange}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
         >
           <option value="all">すべてのカテゴリ</option>
           {categories.map((category) => (
@@ -283,7 +283,7 @@ export default function StudyPage() {
         <select
           value={filters.difficulty}
           onChange={handleDifficultyChange}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
         >
           <option value="all">すべての難易度</option>
           <option value="beginner">初級</option>
@@ -293,7 +293,7 @@ export default function StudyPage() {
         <select
           value={filters.type}
           onChange={handleTypeChange}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
         >
           <option value="all">すべてのタイプ</option>
           <option value="course">コース</option>
@@ -308,7 +308,7 @@ export default function StudyPage() {
           <Spinner size="lg" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {getFilteredContent().length > 0 ? (
             getFilteredContent().map((content) => (
               <LearningCard

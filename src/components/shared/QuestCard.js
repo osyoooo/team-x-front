@@ -1,177 +1,143 @@
-import Card from '@/components/ui/Card';
+import React from 'react';
+import Image from 'next/image';
+import StarRating from '@/components/ui/StarRating';
 import Button from '@/components/ui/Button';
 
-export default function QuestCard({ quest, onJoin, onViewDetails, userQuest = false }) {
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800';
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'advanced':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getDifficultyText = (difficulty) => {
-    switch (difficulty) {
-      case 'beginner':
-        return '初級';
-      case 'intermediate':
-        return '中級';
-      case 'advanced':
-        return '上級';
-      default:
-        return '不明';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'available':
-        return '参加可能';
-      case 'in_progress':
-        return '進行中';
-      case 'completed':
-        return '完了';
-      default:
-        return '不明';
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'available':
-        return 'bg-blue-100 text-blue-800';
-      case 'in_progress':
-        return 'bg-orange-100 text-orange-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const completedSteps = quest.steps?.filter(step => step.completed).length || 0;
-  const totalSteps = quest.steps?.length || 0;
-  const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+export default function QuestCard({ quest, onJoin, onViewDetails }) {
+  const isLocked = quest.isLocked;
 
   return (
-    <Card className="h-full flex flex-col">
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex gap-2">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(quest.difficulty)}`}>
-            {getDifficultyText(quest.difficulty)}
-          </span>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(quest.status)}`}>
-            {getStatusText(quest.status)}
-          </span>
-        </div>
-        <div className="text-sm text-gray-500">
-          {quest.estimatedHours}時間
-        </div>
-      </div>
-
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-        {quest.title}
-      </h3>
-
-      <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
-        {quest.description}
-      </p>
-
-      {/* プログレスバー（進行中のクエストの場合） */}
-      {userQuest && quest.status === 'in_progress' && (
-        <div className="mb-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>進捗</span>
-            <span>{completedSteps}/{totalSteps} ステップ</span>
+    <div className="relative bg-white border border-black rounded-lg overflow-hidden">
+      {/* ロック状態のオーバーレイ */}
+      {isLocked && (
+        <>
+          <div className="absolute inset-0 bg-gray-300 opacity-50 z-10"></div>
+          <div className="absolute top-3 left-3 w-7 h-7 bg-black bg-opacity-75 rounded-full flex items-center justify-center z-20">
+            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-        </div>
+        </>
       )}
 
-      {/* タグ */}
-      <div className="mb-4">
-        <div className="flex flex-wrap gap-2">
-          {quest.tags?.slice(0, 3).map((tag, index) => (
-            <span 
-              key={index}
-              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-            >
-              {tag}
+      <div className="flex p-3">
+        {/* 左側：アイコン */}
+        <div className="flex-shrink-0 mr-4">
+          <div className="w-32 h-32 relative overflow-hidden">
+            <Image
+              src={quest.icon}
+              alt={quest.title}
+              fill
+              className="object-cover"
+              sizes="128px"
+            />
+          </div>
+        </div>
+
+        {/* 右側：情報 */}
+        <div className="flex-1 min-w-0">
+          {/* タイトル */}
+          <h3 className="text-xs font-bold text-black leading-tight mb-3">
+            {quest.title}
+          </h3>
+
+          {/* 星評価 */}
+          <div className="mb-3">
+            <StarRating rating={quest.starRating} />
+          </div>
+
+          {/* マッチ度 */}
+          <div className="mb-2">
+            <span className="text-xs font-bold text-black">
+              マッチ度： {quest.matchPercentage}%
             </span>
-          ))}
-          {quest.tags?.length > 3 && (
-            <span className="text-xs text-gray-500">
-              +{quest.tags.length - 3}
-            </span>
+          </div>
+
+          {/* スキル情報 */}
+          <div className="mb-3">
+            {quest.requiredSkills ? (
+              <span className="text-xs text-black">
+                推奨スキル： {quest.requiredSkills}
+              </span>
+            ) : (
+              <span className="text-xs text-black">
+                スキル傾向：{quest.skillTrend}
+              </span>
+            )}
+          </div>
+
+          {/* 募集人数・参加人数 (応募可能の場合のみ) */}
+          {!isLocked && quest.requiredParticipants && (
+            <>
+              <div className="mb-2">
+                <span className="text-xs text-black">
+                  募集人数： {quest.requiredParticipants}名
+                </span>
+              </div>
+              <div className="mb-3 flex items-center">
+                <div className="w-3.5 h-3.5 mr-1 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span className="text-xs text-black">
+                  参加人数： {quest.participants}名
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* 期間・報酬バッジ (応募可能の場合のみ) */}
+          {!isLocked && quest.duration && (
+            <div className="flex gap-2 mb-3">
+              <div className="bg-gray-200 rounded-full px-2 py-1">
+                <span className="text-xs text-black text-center">
+                  期間：{quest.duration}
+                </span>
+              </div>
+              <div className="bg-gray-200 rounded-full px-2 py-1">
+                <span className="text-xs text-black text-center">
+                  報酬：{quest.reward}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* 解放条件バッジ (ロック状態の場合) */}
+          {isLocked && quest.unlockCondition && (
+            <div className="mb-3">
+              <div className="bg-yellow-300 rounded-full px-2 py-1 inline-block">
+                <span className="text-xs text-black text-center">
+                  解放条件：{quest.unlockCondition}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* 提供団体 */}
+          {quest.provider && (
+            <div className="mb-3">
+              <span className="text-xs text-black">
+                提供団体：{quest.provider}
+              </span>
+            </div>
           )}
         </div>
       </div>
 
-      {/* オーナー情報 */}
-      <div className="flex items-center mb-4">
-        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-          <span className="text-xs font-medium text-gray-600">
-            {quest.owner?.name?.charAt(0) || 'O'}
-          </span>
-        </div>
-        <div>
-          <div className="text-sm font-medium text-gray-900">
-            {quest.owner?.name || 'オーナー'}
-          </div>
-          <div className="text-xs text-gray-500">
-            ⭐ {quest.owner?.rating || '4.5'} • {quest.participants || 0}人参加中
+      {/* アクションボタン (ロックされていない場合のみ) */}
+      {!isLocked && (
+        <div className="px-3 pb-3">
+          <div className="flex justify-center">
+            <Button
+              onClick={() => onViewDetails?.(quest)}
+              className="bg-gray-300 text-white font-bold text-xs px-12 py-2 rounded-full"
+            >
+              クエストを見る
+            </Button>
           </div>
         </div>
-      </div>
-
-      {/* 報酬 */}
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-        <div className="text-sm font-medium text-gray-900 mb-2">報酬</div>
-        <div className="flex justify-between text-sm">
-          <span className="text-blue-600">経験値: {quest.rewards?.xp || 0} XP</span>
-          <span className="text-green-600">ベネフィット: {quest.rewards?.benefits || 0}pt</span>
-        </div>
-      </div>
-
-      {/* アクションボタン */}
-      <div className="mt-auto flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => onViewDetails?.(quest)}
-        >
-          詳細
-        </Button>
-        {!userQuest && quest.status === 'available' && (
-          <Button
-            size="sm"
-            className="flex-1"
-            onClick={() => onJoin?.(quest)}
-          >
-            参加する
-          </Button>
-        )}
-        {userQuest && quest.status === 'in_progress' && (
-          <Button
-            size="sm"
-            className="flex-1"
-            onClick={() => onViewDetails?.(quest)}
-          >
-            続ける
-          </Button>
-        )}
-      </div>
-    </Card>
+      )}
+    </div>
   );
 }

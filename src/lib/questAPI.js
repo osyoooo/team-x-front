@@ -1,87 +1,47 @@
 import { apiClient } from './api';
 
-// モックデータ
+// Figmaデザインに基づくモックデータ
 const mockQuests = [
   {
     id: '1',
-    title: 'Web開発の基礎を学ぼう',
-    description: 'HTML、CSS、JavaScriptの基本を身につけて、最初のWebサイトを作成しましょう。',
-    difficulty: 'beginner',
-    estimatedHours: 20,
-    tags: ['Web開発', 'HTML', 'CSS', 'JavaScript'],
+    title: '地域飲食店レビューサイト開発',
+    icon: '/icons/repo.svg',
+    starRating: 2,
+    matchPercentage: 92,
+    requiredSkills: 'HTML / CSS / JavaScript（初級）',
+    requiredParticipants: 15,
+    participants: 4,
+    duration: '2ヶ月',
+    reward: '+100',
     status: 'available',
-    participants: 156,
-    rewards: {
-      xp: 100,
-      badges: ['Web開発初心者'],
-      benefits: 10
-    },
-    steps: [
-      { id: '1-1', title: 'HTMLの基礎', completed: false },
-      { id: '1-2', title: 'CSSでスタイリング', completed: false },
-      { id: '1-3', title: 'JavaScriptの基本', completed: false },
-      { id: '1-4', title: '最初のWebサイト作成', completed: false }
-    ],
-    owner: {
-      id: 'owner1',
-      name: '田中先生',
-      avatar: '/avatars/tanaka.jpg',
-      rating: 4.8
-    }
+    isLocked: false
   },
   {
-    id: '2',
-    title: 'React入門チャレンジ',
-    description: 'モダンなフロントエンド開発の第一歩として、Reactの基本概念とコンポーネント作成を学びます。',
-    difficulty: 'intermediate',
-    estimatedHours: 35,
-    tags: ['React', 'JavaScript', 'フロントエンド'],
+    id: '2', 
+    title: '簡易勤怠管理システムの開発',
+    icon: '/icons/pasocon.svg',
+    starRating: 3,
+    matchPercentage: 86,
+    requiredSkills: 'Python（Flask）/ SQLite / Git',
+    requiredParticipants: 10,
+    participants: 8,
+    duration: '1.5ヶ月',
+    reward: '+100',
+    provider: 'NPO法人 × IT支援チーム',
     status: 'available',
-    participants: 89,
-    rewards: {
-      xp: 200,
-      badges: ['React Developer'],
-      benefits: 25
-    },
-    steps: [
-      { id: '2-1', title: 'Reactの概念理解', completed: false },
-      { id: '2-2', title: 'コンポーネント作成', completed: false },
-      { id: '2-3', title: 'State管理', completed: false },
-      { id: '2-4', title: 'TODOアプリ作成', completed: false }
-    ],
-    owner: {
-      id: 'owner2',
-      name: '佐藤エンジニア',
-      avatar: '/avatars/sato.jpg',
-      rating: 4.9
-    }
+    isLocked: false
   },
   {
     id: '3',
-    title: 'UIデザインの基本原則',
-    description: 'ユーザビリティとアクセシビリティを考慮したUIデザインの基本原則を学びます。',
-    difficulty: 'beginner',
-    estimatedHours: 15,
-    tags: ['UI/UX', 'デザイン', 'Figma'],
-    status: 'in_progress',
-    participants: 234,
-    rewards: {
-      xp: 80,
-      badges: ['UI Designer'],
-      benefits: 15
-    },
-    steps: [
-      { id: '3-1', title: 'デザイン原則の理解', completed: true },
-      { id: '3-2', title: 'カラーパレット作成', completed: true },
-      { id: '3-3', title: 'レイアウト設計', completed: false },
-      { id: '3-4', title: 'プロトタイプ作成', completed: false }
-    ],
-    owner: {
-      id: 'owner3',
-      name: 'デザイナー山田',
-      avatar: '/avatars/yamada.jpg',
-      rating: 4.7
-    }
+    title: '防災情報マップ開発プロジェクト', 
+    icon: '/icons/bousai.svg',
+    starRating: 3,
+    matchPercentage: 88,
+    skillTrend: 'JavaScript / 地図API / データ構造設計',
+    provider: '○○市 防災対策室',
+    unlockCondition: 'みつける力40点以上',
+    status: 'available',
+    isLocked: true
   }
 ];
 

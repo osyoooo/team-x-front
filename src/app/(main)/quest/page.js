@@ -7,8 +7,8 @@ import { useUIStore } from '@/store/uiStore';
 import { questAPI } from '@/lib/questAPI';
 import QuestCard from '@/components/shared/QuestCard';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import Spinner from '@/components/ui/Spinner';
+import Tabs from '@/components/ui/Tabs';
 
 export default function QuestPage() {
   const router = useRouter();
@@ -16,12 +16,13 @@ export default function QuestPage() {
   const { setLoading, addNotification } = useUIStore();
   
   const [quests, setQuests] = useState([]);
-  const [filters, setFilters] = useState({
-    search: '',
-    difficulty: 'all',
-    status: 'available'
-  });
   const [activeTab, setActiveTab] = useState('available');
+
+  // タブ設定
+  const tabs = [
+    { id: 'available', label: '応募可能' },
+    { id: 'in_progress', label: '進行中' },
+  ];
 
   // 認証チェック
   useEffect(() => {
@@ -35,13 +36,7 @@ export default function QuestPage() {
     const fetchQuests = async () => {
       setLoading('quests', true);
       try {
-        const filterParams = {
-          ...filters,
-          status: activeTab,
-          difficulty: filters.difficulty === 'all' ? undefined : filters.difficulty
-        };
-        
-        const response = await questAPI.getQuests(filterParams);
+        const response = await questAPI.getQuests({ status: activeTab });
         if (response.success) {
           setQuests(response.data.quests);
         }
@@ -58,15 +53,8 @@ export default function QuestPage() {
     if (isAuthenticated) {
       fetchQuests();
     }
-  }, [isAuthenticated, filters, activeTab, setLoading, addNotification]);
+  }, [isAuthenticated, activeTab, setLoading, addNotification]);
 
-  const handleSearch = (e) => {
-    setFilters(prev => ({ ...prev, search: e.target.value }));
-  };
-
-  const handleDifficultyChange = (e) => {
-    setFilters(prev => ({ ...prev, difficulty: e.target.value }));
-  };
 
   const handleJoinQuest = async (quest) => {
     try {
@@ -77,11 +65,7 @@ export default function QuestPage() {
           message: `「${quest.title}」に参加しました！`
         });
         // クエスト一覧を再取得
-        const updatedResponse = await questAPI.getQuests({
-          ...filters,
-          status: activeTab,
-          difficulty: filters.difficulty === 'all' ? undefined : filters.difficulty
-        });
+        const updatedResponse = await questAPI.getQuests({ status: activeTab });
         if (updatedResponse.success) {
           setQuests(updatedResponse.data.quests);
         }
@@ -106,64 +90,16 @@ export default function QuestPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* ヘッダー */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">クエスト</h1>
-        <p className="text-gray-600">
-          新しいスキルを身につけて、夢の実現に近づこう
-        </p>
-      </div>
 
       {/* タブ */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('available')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'available'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              参加可能
-            </button>
-            <button
-              onClick={() => setActiveTab('in_progress')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'in_progress'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              進行中
-            </button>
-          </nav>
-        </div>
+      <div className="mb-6 flex justify-center">
+        <Tabs 
+          tabs={tabs} 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+        />
       </div>
 
-      {/* フィルター */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="クエストを検索..."
-            value={filters.search}
-            onChange={handleSearch}
-          />
-        </div>
-        <div className="sm:w-48">
-          <select
-            value={filters.difficulty}
-            onChange={handleDifficultyChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">すべての難易度</option>
-            <option value="beginner">初級</option>
-            <option value="intermediate">中級</option>
-            <option value="advanced">上級</option>
-          </select>
-        </div>
-      </div>
 
       {/* クエスト一覧 */}
       {isLoading ? (
@@ -185,7 +121,7 @@ export default function QuestPage() {
           ) : (
             <div className="col-span-full text-center py-12">
               <div className="text-gray-500 mb-4">
-                {activeTab === 'available' ? '利用可能なクエストがありません' : '進行中のクエストがありません'}
+                {activeTab === 'available' ? '応募可能なクエストがありません' : '進行中のクエストがありません'}
               </div>
               {activeTab === 'in_progress' && (
                 <Button onClick={() => setActiveTab('available')}>
@@ -196,6 +132,14 @@ export default function QuestPage() {
           )}
         </div>
       )}
+
+      {/* 完了済みのクエスト */}
+      <div className="mt-8 flex items-center justify-end">
+        <span className="text-sm font-bold text-gray-600 mr-2">完了済みのクエスト</span>
+        <svg className="w-3 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        </svg>
+      </div>
     </div>
   );
 }

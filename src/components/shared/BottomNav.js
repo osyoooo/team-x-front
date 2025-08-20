@@ -20,20 +20,24 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-      <div className="grid grid-cols-6 h-16">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg">
+      <div className="grid grid-cols-6 h-16 safe-area-pb">
         {navigation.map((item) => (
           <Link
             key={item.name}
             href={item.href}
-            className={`flex flex-col items-center justify-center text-xs font-medium transition-colors ${
+            className={`flex flex-col items-center justify-center text-xs font-medium transition-all duration-200 ${
               isActiveLink(item.href)
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'text-blue-600 bg-blue-50 transform scale-105'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            <span className="text-lg mb-1">{item.icon}</span>
-            <span>{item.name}</span>
+            <span className={`mb-1 transition-all duration-200 ${
+              isActiveLink(item.href) ? 'text-xl' : 'text-lg'
+            }`}>
+              {item.icon}
+            </span>
+            <span className="leading-tight">{item.name}</span>
           </Link>
         ))}
       </div>

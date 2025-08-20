@@ -42,6 +42,17 @@ This is a Next.js 15 frontend application for Team X, using React 19 with Tailwi
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint with Next.js config
 
+## Development Rules
+
+**Mobile-First Development:**
+- すべてのUI/UXはスマートフォン表示を基準として設計・実装する
+- Tailwind CSS の mobile-first ブレークポイント（`sm:`, `md:`, `lg:`, `xl:`）を活用
+- デスクトップ向けスタイルは段階的にエンハンスメントとして追加
+- 開発・テスト時はモバイルビューを優先的に確認
+- レスポンシブデザインの実装順序: Mobile → Tablet → Desktop
+- タッチ操作を前提としたインタラクションデザイン
+- モバイル向けのパフォーマンス最適化を常に考慮
+
 ## Architecture
 
 **Framework Stack:**
