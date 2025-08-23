@@ -43,7 +43,7 @@ export default function QuestPage() {
         const [availableResponse, inProgressResponse, upcomingResponse] = await Promise.all([
           questAPI.getAvailableQuests(),
           questAPI.getInProgressQuests(),
-          questAPI.getUpcomingQuests()
+          // questAPI.getUpcomingQuests()
         ]);
 
         if (availableResponse.success) {
@@ -83,7 +83,7 @@ export default function QuestPage() {
         const [availableResponse, inProgressResponse, upcomingResponse] = await Promise.all([
           questAPI.getAvailableQuests(),
           questAPI.getInProgressQuests(),
-          questAPI.getUpcomingQuests()
+          // questAPI.getUpcomingQuests()
         ]);
 
         if (availableResponse.success) {

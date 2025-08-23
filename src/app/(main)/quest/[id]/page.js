@@ -39,19 +39,29 @@ export default function QuestDetailPage() {
           const questData = {
             id: response.data.id,
             title: response.data.title,
-            description: response.data.description || response.data.objective || '',
+            description: response.data.description || '',
+            objective: response.data.objective || '',
             difficulty: getDifficultyText(response.data.difficulty_level),
+            difficulty_level: response.data.difficulty_level,
             estimatedTime: response.data.duration_display || '未定',
-            points: parseInt(response.data.points_display?.replace(/[^\d]/g, '') || '0'),
+            points: response.data.points?.total || parseInt(response.data.points_display?.replace(/[^\d]/g, '') || '0'),
+            points_detail: response.data.points,
             tags: response.data.skills || [],
-            status: 'available', // デフォルトは応募可能
+            recommended_skills: response.data.recommended_skills_display || '',
+            status: response.data.user_status === 'applied' ? 'in_progress' : 'available',
             participants: parseInt(response.data.participants_display?.replace(/[^\d]/g, '') || '0'),
+            max_participants: response.data.max_participants || 0,
+            match_rate: response.data.match_rate || 0,
             completionRate: 85, // デフォルト値（APIに含まれていない場合）
             objectives: response.data.benefits || [],
             curriculum: [], // カリキュラム情報がない場合は空配列
             prerequisites: [], // 前提条件がない場合は空配列
+            prerequisite_text: response.data.prerequisite_text || '',
+            prerequisite_score: response.data.prerequisite_score || 0,
             benefits: response.data.benefits || [],
-            provider: response.data.provider_name || response.data.provider
+            provider: response.data.provider_name || response.data.provider,
+            deadline: response.data.deadline || '',
+            is_urgent: response.data.is_urgent || false
           };
           setQuest(questData);
         } else {
@@ -161,67 +171,223 @@ export default function QuestDetailPage() {
   const statusDisplay = getStatusDisplay(quest.status);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      {/* ヘッダー */}
-      <div className="mb-6">
-        <Button 
-          variant="outline" 
-          onClick={() => router.back()}
-          className="mb-4"
-        >
-          ← 戻る
-        </Button>
-        
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{quest.title}</h1>
-            <p className="text-gray-600 mb-4">{quest.description}</p>
-            
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(quest.difficulty)}`}>
-                {quest.difficulty}
-              </span>
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                {quest.estimatedTime}
-              </span>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                {quest.points}pt
-              </span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusDisplay.color}`}>
-                {statusDisplay.text}
-              </span>
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* モバイル・タブレット対応のポップアップ風レイアウト */}
+      <div className="max-w-md mx-auto md:max-w-2xl lg:max-w-4xl bg-white border border-black rounded-lg overflow-hidden shadow-lg">
+        {/* ヘッダーバー */}
+        <div className="bg-[#CCCCCC] h-6 flex items-center justify-end px-4">
+          <button 
+            onClick={() => router.back()}
+            className="w-4 h-4 flex items-center justify-center hover:bg-gray-300 rounded-full transition-colors"
+          >
+            <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-6">
+          {/* クエスト画像とメイン情報 */}
+          <div className="flex flex-col md:flex-row gap-6 mb-6">
+            {/* クエスト画像 */}
+            <div className="flex-shrink-0 w-full md:w-44 h-48 bg-gray-200 rounded overflow-hidden">
+              <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                <div className="text-4xl">📚</div>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {quest.tags.map((tag) => (
-                <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
-                  #{tag}
-                </span>
+            {/* メイン情報 */}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg md:text-xl font-bold text-black mb-3 leading-tight">{quest.title}</h1>
+              
+              {/* 星評価 */}
+              <div className="flex items-center gap-1 mb-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <svg 
+                    key={star} 
+                    className={`w-3 h-3 ${star <= quest.difficulty_level ? 'text-gray-600' : 'text-gray-300'}`} 
+                    fill="currentColor" 
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+
+              {/* マッチ度 */}
+              <div className="text-sm font-bold text-black mb-3">
+                マッチ度： {quest.match_rate}%
+              </div>
+
+              {/* 推奨スキル */}
+              {quest.recommended_skills && (
+                <div className="text-sm text-black mb-3">
+                  推奨スキル： {quest.recommended_skills}
+                </div>
+              )}
+
+              {/* 期間・報酬バッジ */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                <div className="bg-[#E5E5E5] rounded-full px-3 py-1">
+                  <span className="text-black text-center text-xs">
+                    期間：{quest.estimatedTime}
+                  </span>
+                </div>
+                <div className="bg-[#E5E5E5] rounded-full px-3 py-1">
+                  <span className="text-black text-center text-xs">
+                    報酬：+{quest.points}
+                  </span>
+                </div>
+              </div>
+
+              {/* 募集人数・参加人数 */}
+              <div className="flex flex-wrap gap-4 mb-3 text-sm text-black">
+                <div>募集人数： {quest.max_participants}名</div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3.5 h-3.5 flex items-center justify-center">
+                    <svg className="w-3 h-3" fill="#575757" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span>参加人数： {quest.participants}名</span>
+                </div>
+              </div>
+
+              {/* 獲得スコア詳細 */}
+              {quest.points_detail && (
+                <div className="text-sm text-black mb-3">
+                  獲得スコア：<br />
+                  みつける+{quest.points_detail.find || 0}、カタチにする+{quest.points_detail.shape || 0}、とどける+{quest.points_detail.deliver || 0}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 提供団体 */}
+          <div className="text-sm text-black mb-6">
+            提供団体：{quest.provider}
+          </div>
+
+          {/* 参加条件 */}
+          <div className="mb-6">
+            <div className="text-sm text-black mb-2">参加条件：</div>
+            <div className="text-sm text-black ml-2 space-y-1">
+              {quest.prerequisite_score > 0 && (
+                <div>スコア{quest.prerequisite_score}点以上</div>
+              )}
+              {quest.prerequisite_text && (
+                <div>{quest.prerequisite_text}</div>
+              )}
+              {quest.tags.map((skill, index) => (
+                <div key={index}>{skill.name || skill}</div>
               ))}
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          {/* 目的 */}
+          {quest.objective && (
+            <div className="mb-6">
+              <div className="text-sm font-bold text-black mb-2">目的：</div>
+              <div className="text-sm text-black">
+                {quest.objective}
+              </div>
+            </div>
+          )}
+
+          {/* 概要 */}
+          {quest.description && (
+            <div className="mb-6">
+              <div className="text-sm font-bold text-black mb-2">概要：</div>
+              <div className="text-sm text-black">
+                {quest.description}
+              </div>
+            </div>
+          )}
+
+          {/* クエストクリア特典 */}
+          {quest.benefits.length > 0 && (
+            <div className="border border-black p-4 rounded mb-6">
+              <div className="text-sm font-bold text-black mb-2">クエストクリア特典</div>
+              <div className="space-y-1">
+                {quest.benefits.map((benefit, index) => (
+                  <div key={index} className="text-sm text-black">
+                    {benefit.name || benefit}
+                    {benefit.type === 'recommendation' && ' （昨年実績：参加者の80%が推薦獲得）'}
+                  </div>
+                ))}
+              </div>
+              <div className="text-sm text-black mt-2">
+                地域連携推薦入試の実績として活用可能
+              </div>
+            </div>
+          )}
+
+          {/* アクションボタン */}
+          <div className="flex gap-3 justify-center">
+            <button className="bg-[#E5E5E5] text-black font-bold text-xs px-16 py-2 rounded-full hover:bg-gray-300 transition-colors">
+              あとで挑戦する
+            </button>
             {quest.status === 'available' && (
-              <Button onClick={() => setIsJoinModalOpen(true)}>
-                クエストに参加
-              </Button>
+              <button 
+                onClick={() => setIsJoinModalOpen(true)}
+                className="bg-black text-white font-bold text-xs px-16 py-2 rounded-full hover:bg-gray-800 transition-colors"
+              >
+                クエストに挑戦する
+              </button>
             )}
             {quest.status === 'in_progress' && (
-              <Button onClick={() => setIsCompleteModalOpen(true)}>
+              <button 
+                onClick={() => setIsCompleteModalOpen(true)}
+                className="bg-black text-white font-bold text-xs px-16 py-2 rounded-full hover:bg-gray-800 transition-colors"
+              >
                 完了報告
-              </Button>
+              </button>
             )}
             {quest.status === 'completed' && (
-              <Button disabled>
+              <button 
+                disabled
+                className="bg-gray-400 text-white font-bold text-xs px-16 py-2 rounded-full cursor-not-allowed"
+              >
                 完了済み ✓
-              </Button>
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* 従来のカリキュラムセクション（必要に応じて表示） */}
+      {quest.curriculum.length > 0 && (
+        <div className="max-w-md mx-auto md:max-w-2xl lg:max-w-4xl mt-8">
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">📚 カリキュラム</h3>
+            <div className="space-y-3">
+              {quest.curriculum.map((item, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center ${
+                      item.completed ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      {item.completed ? (
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <span className="text-white text-xs">{index + 1}</span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{item.title}</div>
+                      <div className="text-sm text-gray-500">{item.duration}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{display: 'none'}}>
         {/* メインコンテンツ */}
         <div className="lg:col-span-2 space-y-6">
           {/* 学習目標 */}
