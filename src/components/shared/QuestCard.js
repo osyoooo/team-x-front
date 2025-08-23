@@ -3,8 +3,26 @@ import Image from 'next/image';
 import StarRating from '@/components/ui/StarRating';
 import Button from '@/components/ui/Button';
 
+// ランダムなクエスト画像の配列
+const questImages = [
+  '/quest/ぱそこん-removebg-preview.png',
+  '/quest/ぺん-removebg-preview.png',
+  '/quest/ぼうさい-removebg-preview.png',
+  '/quest/れびゅ-removebg-preview.png',
+  '/quest/れぽ-removebg-preview.png'
+];
+
+// ランダムな画像を選択する関数
+const getRandomQuestImage = () => {
+  const randomIndex = Math.floor(Math.random() * questImages.length);
+  return questImages[randomIndex];
+};
+
 export default function QuestCard({ quest, onJoin, onViewDetails }) {
   const isLocked = quest.isLocked;
+  
+  // 画像ソースの決定：quest.iconが有効でない場合はランダム画像を使用
+  const imageSource = quest.icon && quest.icon.trim() ? quest.icon : getRandomQuestImage();
 
   return (
     <div className="relative bg-white border border-black rounded-lg overflow-hidden">
@@ -25,7 +43,7 @@ export default function QuestCard({ quest, onJoin, onViewDetails }) {
         <div className="flex-shrink-0 mr-4">
           <div className="w-32 h-32 relative overflow-hidden">
             <Image
-              src={quest.icon}
+              src={imageSource}
               alt={quest.title}
               fill
               className="object-cover"
