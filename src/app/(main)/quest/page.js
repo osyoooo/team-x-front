@@ -6,16 +6,18 @@ import { useUserStore } from '@/store/userStore';
 import { useUIStore } from '@/store/uiStore';
 import { questAPI } from '@/lib/questAPI';
 import QuestCard from '@/components/shared/QuestCard';
-import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import Tabs from '@/components/ui/Tabs';
 
 export default function QuestPage() {
   const router = useRouter();
   const { isAuthenticated } = useUserStore();
-  const { setLoading, addNotification } = useUIStore();
+  const { addNotification } = useUIStore();
   
-  const [quests, setQuests] = useState([]);
+  const [availableQuests, setAvailableQuests] = useState([]);
+  const [inProgressQuests, setInProgressQuests] = useState([]);
+  const [upcomingQuests, setUpcomingQuests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('available');
 
   // タブ設定
@@ -33,12 +35,24 @@ export default function QuestPage() {
 
   // クエスト一覧取得
   useEffect(() => {
-    const fetchQuests = async () => {
-      setLoading('quests', true);
+    const fetchAllQuests = async () => {
+      setIsLoading(true);
       try {
-        const response = await questAPI.getQuests({ status: activeTab });
-        if (response.success) {
-          setQuests(response.data.quests);
+        // 3つのAPI呼び出しを並行実行
+        const [availableResponse, inProgressResponse, upcomingResponse] = await Promise.all([
+          questAPI.getAvailableQuests(),
+          questAPI.getInProgressQuests(),
+          questAPI.getUpcomingQuests()
+        ]);
+
+        if (availableResponse.success) {
+          setAvailableQuests(availableResponse.data.quests);
+        }
+        if (inProgressResponse.success) {
+          setInProgressQuests(inProgressResponse.data.quests);
+        }
+        if (upcomingResponse.success) {
+          setUpcomingQuests(upcomingResponse.data.quests);
         }
       } catch (error) {
         addNotification({
@@ -46,14 +60,14 @@ export default function QuestPage() {
           message: error.message
         });
       } finally {
-        setLoading('quests', false);
+        setIsLoading(false);
       }
     };
 
     if (isAuthenticated) {
-      fetchQuests();
+      fetchAllQuests();
     }
-  }, [isAuthenticated, activeTab, setLoading, addNotification]);
+  }, [isAuthenticated, addNotification]);
 
 
   const handleJoinQuest = async (quest) => {
@@ -65,9 +79,20 @@ export default function QuestPage() {
           message: `「${quest.title}」に参加しました！`
         });
         // クエスト一覧を再取得
-        const updatedResponse = await questAPI.getQuests({ status: activeTab });
-        if (updatedResponse.success) {
-          setQuests(updatedResponse.data.quests);
+        const [availableResponse, inProgressResponse, upcomingResponse] = await Promise.all([
+          questAPI.getAvailableQuests(),
+          questAPI.getInProgressQuests(),
+          questAPI.getUpcomingQuests()
+        ]);
+
+        if (availableResponse.success) {
+          setAvailableQuests(availableResponse.data.quests);
+        }
+        if (inProgressResponse.success) {
+          setInProgressQuests(inProgressResponse.data.quests);
+        }
+        if (upcomingResponse.success) {
+          setUpcomingQuests(upcomingResponse.data.quests);
         }
       }
     } catch (error) {
@@ -82,7 +107,6 @@ export default function QuestPage() {
     router.push(`/quest/${quest.id}`);
   };
 
-  const isLoading = useUIStore((state) => state.loading.quests);
 
   if (!isAuthenticated) {
     return null;
@@ -90,55 +114,91 @@ export default function QuestPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-
-      {/* タブ */}
-      <div className="mb-6 flex justify-center">
-        <Tabs 
-          tabs={tabs} 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab}
-        />
-      </div>
-
-
-      {/* クエスト一覧 */}
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <Spinner size="lg" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {quests.length > 0 ? (
-            quests.map((quest) => (
-              <QuestCard
-                key={quest.id}
-                quest={quest}
-                onJoin={handleJoinQuest}
-                onViewDetails={handleViewDetails}
-                userQuest={activeTab === 'in_progress'}
+      <div className="bg-white rounded-lg shadow-sm">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+          <div className="p-6">
+            {/* タブ */}
+            <div className="mb-6 flex justify-center">
+              <Tabs 
+                tabs={tabs} 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab}
               />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <div className="text-gray-500 mb-4">
-                {activeTab === 'available' ? '応募可能なクエストがありません' : '進行中のクエストがありません'}
-              </div>
-              {activeTab === 'in_progress' && (
-                <Button onClick={() => setActiveTab('available')}>
-                  新しいクエストを探す
-                </Button>
+            </div>
+
+            {/* タブ内容 */}
+            <div className="mb-12">
+              {activeTab === 'available' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {availableQuests.length > 0 ? (
+                    availableQuests.map((quest) => (
+                      <QuestCard
+                        key={quest.id}
+                        quest={quest}
+                        onJoin={handleJoinQuest}
+                        onViewDetails={handleViewDetails}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12">
+                      <div className="text-gray-500">応募可能なクエストがありません</div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {inProgressQuests.length > 0 ? (
+                    inProgressQuests.map((quest) => (
+                      <QuestCard
+                        key={quest.id}
+                        quest={quest}
+                        onViewDetails={handleViewDetails}
+                        userQuest={true}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12">
+                      <div className="text-gray-500 mb-4">進行中のクエストがありません</div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-      )}
 
-      {/* 完了済みのクエスト */}
-      <div className="mt-8 flex items-center justify-end">
-        <span className="text-sm font-bold text-gray-600 mr-2">完了済みのクエスト</span>
-        <svg className="w-3 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-        </svg>
+            {/* まもなく解放セクション */}
+            <section>
+              <h2 className="text-lg font-bold text-black mb-6">まもなく解放</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {upcomingQuests.length > 0 ? (
+                  upcomingQuests.map((quest) => (
+                    <QuestCard
+                      key={quest.id}
+                      quest={quest}
+                      onViewDetails={handleViewDetails}
+                      isUpcoming={true}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <div className="text-gray-500">まもなく解放されるクエストがありません</div>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* 完了済みのクエスト */}
+            <div className="mt-8 flex items-center justify-end">
+              <span className="text-sm font-bold text-gray-600 mr-2">完了済みのクエスト</span>
+              <svg className="w-3 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

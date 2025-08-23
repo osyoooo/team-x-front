@@ -35,6 +35,23 @@ export const questAPI = {
     }
   },
 
+  // まもなく解放されるクエスト一覧取得
+  async getUpcomingQuests() {
+    try {
+      const response = await apiClient.get('/api/v1/quests/upcoming');
+      return {
+        success: true,
+        data: {
+          quests: response.quests || [],
+          totalCount: response.total_count || 0
+        }
+      };
+    } catch (error) {
+      console.error('Upcoming quests API error:', error);
+      throw new Error('まもなく解放されるクエストの取得に失敗しました');
+    }
+  },
+
   // クエスト一覧取得（既存コンポーネント互換性のため）
   async getQuests(filters = {}) {
     try {
