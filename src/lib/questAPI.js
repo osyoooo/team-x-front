@@ -4,7 +4,7 @@ export const questAPI = {
   // 応募可能なクエスト一覧取得
   async getAvailableQuests() {
     try {
-      const response = await apiClient.get('/api/v1/quests/available');
+      const response = await apiClient.get('/api/v1/quests/v2/available');
       return {
         success: true,
         data: {
@@ -21,7 +21,7 @@ export const questAPI = {
   // 進行中のクエスト一覧取得
   async getInProgressQuests() {
     try {
-      const response = await apiClient.get('/api/v1/quests/in-progress');
+      const response = await apiClient.get('/api/v1/quests/v2/in-progress');
       return {
         success: true,
         data: {
@@ -38,7 +38,7 @@ export const questAPI = {
   // まもなく解放されるクエスト一覧取得
   async getUpcomingQuests() {
     try {
-      const response = await apiClient.get('/api/v1/quests/upcoming');
+      const response = await apiClient.get('/api/v1/quests/v2/upcoming');
       return {
         success: true,
         data: {

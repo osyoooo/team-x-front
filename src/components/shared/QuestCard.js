@@ -93,9 +93,11 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
 
           {/* スキル情報 */}
           <div className="mb-2 md:mb-3">
-            {quest.requiredSkills || quest.skillTrend ? (
+            {quest.recommended_skills_display || quest.requiredSkills || quest.skillTrend ? (
               <span className="text-black text-xs md:text-sm">
-                {quest.requiredSkills ? `推奨スキル： ${quest.requiredSkills}` : `スキル傾向： ${quest.skillTrend}`}
+                {quest.recommended_skills_display ? `推奨スキル： ${quest.recommended_skills_display}` : 
+                 quest.requiredSkills ? `推奨スキル： ${quest.requiredSkills}` : 
+                 `スキル傾向： ${quest.skillTrend}`}
               </span>
             ) : quest.objective ? (
               <span className="text-black text-xs md:text-sm">

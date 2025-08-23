@@ -6,7 +6,9 @@
 | 3  | /api/v1/quests/upcoming    | GET  | まもなく解放されるクエスト一覧を取得 | なし                      | JSON    | {"status": "upcoming", "quests": [{...}], "total_count": 3}    | 不要（user_id=1固定） | 200, 500      |
 | 4  | /api/v1/quests/{quest_id}  | GET  | クエスト詳細情報を取得        | quest_id: int (パスパラメータ) | JSON    | {"id": 7, "title": "...", "skills": [...], "benefits": [...]}  | 不要（user_id=1固定） | 200, 404, 500 |
 | 5  | /api/v1/quests/apply       | POST | クエストに応募            | {"quest_id": int}       | JSON    | {"success": true, "message": "応募が完了しました"}                      | 不要（user_id=1固定） | 200, 400, 500 |
-
+| 6 | /api/v1/quests/v2/available   | GET | 応募可能なクエスト一覧を取得（v2）     | なし | JSON | {"status": "available", "quests": [{...}], "total_count": 10}  | 不要（user_id=1固定） | 200, 500 |
+| 7 | /api/v1/quests/v2/in-progress | GET | 進行中のクエスト一覧を取得（v2）      | なし | JSON | {"status": "in_progress", "quests": [{...}], "total_count": 5} | 不要（user_id=1固定） | 200, 500 |
+| 8 | /api/v1/quests/v2/upcoming    | GET | まもなく解放されるクエスト一覧を取得（v2） | なし | JSON | {"status": "upcoming", "quests": [{...}], "total_count": 3}    | 不要（user_id=1固定） | 200, 500 |
 
 # レスポンスフィールド詳細（クエスト一覧共通）
 | フィールド名               | 型           | 説明                            |

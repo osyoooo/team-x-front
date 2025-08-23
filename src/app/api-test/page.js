@@ -79,49 +79,112 @@ export default function ApiTestPage() {
       )}
 
       <div className="space-y-8">
-        {/* 1. Available Quests */}
-        <div className="border border-gray-200 p-6 rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">1. Get Available Quests</h3>
+        {/* V2 APIs Section */}
+        <div className="bg-green-50 p-4 rounded-lg mb-6">
+          <h2 className="text-2xl font-bold text-green-800 mb-2">V2 APIs (Current/Latest)</h2>
+          <p className="text-sm text-green-700">これらのAPIは最新版で、recommended_skills_displayフィールドなど新機能が含まれています。</p>
+        </div>
+
+        {/* 1. Available Quests V2 */}
+        <div className="border border-green-200 p-6 rounded-lg bg-green-50">
+          <h3 className="text-xl font-semibold mb-4">1. Get Available Quests (V2)</h3>
+          <p className="text-sm text-gray-600 mb-2">GET /api/v1/quests/v2/available</p>
+          <p className="text-xs text-green-600 mb-4">✓ recommended_skills_displayフィールドを含む</p>
+          
+          <button
+            onClick={() => testAPI('/api/v1/quests/v2/available', 'GET', null, 'availableV2')}
+            disabled={loading}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+          >
+            {loading ? 'Testing...' : 'Test V2 API'}
+          </button>
+          
+          {formatResponse(responses.availableV2)}
+        </div>
+
+        {/* 2. In Progress Quests V2 */}
+        <div className="border border-green-200 p-6 rounded-lg bg-green-50">
+          <h3 className="text-xl font-semibold mb-4">2. Get In Progress Quests (V2)</h3>
+          <p className="text-sm text-gray-600 mb-2">GET /api/v1/quests/v2/in-progress</p>
+          <p className="text-xs text-green-600 mb-4">✓ recommended_skills_displayフィールドを含む</p>
+          
+          <button
+            onClick={() => testAPI('/api/v1/quests/v2/in-progress', 'GET', null, 'inProgressV2')}
+            disabled={loading}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+          >
+            {loading ? 'Testing...' : 'Test V2 API'}
+          </button>
+          
+          {formatResponse(responses.inProgressV2)}
+        </div>
+
+        {/* 3. Upcoming Quests V2 */}
+        <div className="border border-green-200 p-6 rounded-lg bg-green-50">
+          <h3 className="text-xl font-semibold mb-4">3. Get Upcoming Quests (V2)</h3>
+          <p className="text-sm text-gray-600 mb-2">GET /api/v1/quests/v2/upcoming</p>
+          <p className="text-xs text-green-600 mb-4">✓ recommended_skills_displayフィールドを含む</p>
+          
+          <button
+            onClick={() => testAPI('/api/v1/quests/v2/upcoming', 'GET', null, 'upcomingV2')}
+            disabled={loading}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+          >
+            {loading ? 'Testing...' : 'Test V2 API'}
+          </button>
+          
+          {formatResponse(responses.upcomingV2)}
+        </div>
+
+        {/* V1 APIs Section */}
+        <div className="bg-yellow-50 p-4 rounded-lg mb-6">
+          <h2 className="text-2xl font-bold text-yellow-800 mb-2">V1 APIs (Legacy)</h2>
+          <p className="text-sm text-yellow-700">これらのAPIは従来版です。比較用として残しています。</p>
+        </div>
+
+        {/* 1. Available Quests V1 */}
+        <div className="border border-yellow-200 p-6 rounded-lg bg-yellow-50">
+          <h3 className="text-xl font-semibold mb-4">1. Get Available Quests (V1)</h3>
           <p className="text-sm text-gray-600 mb-4">GET /api/v1/quests/available</p>
           
           <button
             onClick={() => testAPI('/api/v1/quests/available', 'GET', null, 'available')}
             disabled={loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
           >
-            {loading ? 'Testing...' : 'Test API'}
+            {loading ? 'Testing...' : 'Test V1 API'}
           </button>
           
           {formatResponse(responses.available)}
         </div>
 
-        {/* 2. In Progress Quests */}
-        <div className="border border-gray-200 p-6 rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">2. Get In Progress Quests</h3>
+        {/* 2. In Progress Quests V1 */}
+        <div className="border border-yellow-200 p-6 rounded-lg bg-yellow-50">
+          <h3 className="text-xl font-semibold mb-4">2. Get In Progress Quests (V1)</h3>
           <p className="text-sm text-gray-600 mb-4">GET /api/v1/quests/in-progress</p>
           
           <button
             onClick={() => testAPI('/api/v1/quests/in-progress', 'GET', null, 'inProgress')}
             disabled={loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
           >
-            {loading ? 'Testing...' : 'Test API'}
+            {loading ? 'Testing...' : 'Test V1 API'}
           </button>
           
           {formatResponse(responses.inProgress)}
         </div>
 
-        {/* 3. Upcoming Quests */}
-        <div className="border border-gray-200 p-6 rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">3. Get Upcoming Quests</h3>
+        {/* 3. Upcoming Quests V1 */}
+        <div className="border border-yellow-200 p-6 rounded-lg bg-yellow-50">
+          <h3 className="text-xl font-semibold mb-4">3. Get Upcoming Quests (V1)</h3>
           <p className="text-sm text-gray-600 mb-4">GET /api/v1/quests/upcoming</p>
           
           <button
             onClick={() => testAPI('/api/v1/quests/upcoming', 'GET', null, 'upcoming')}
             disabled={loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
           >
-            {loading ? 'Testing...' : 'Test API'}
+            {loading ? 'Testing...' : 'Test V1 API'}
           </button>
           
           {formatResponse(responses.upcoming)}
@@ -191,12 +254,22 @@ export default function ApiTestPage() {
       <div className="mt-8 p-4 bg-gray-100 rounded-lg">
         <h3 className="font-semibold mb-2">Testing Instructions:</h3>
         <ol className="text-sm text-gray-700 list-decimal list-inside space-y-1">
-          <li>Make sure the development server is restarted to pick up the new environment variable</li>
-          <li>Test the Available/In Progress/Upcoming APIs first to get quest IDs</li>
-          <li>Use the quest IDs from step 2 to test the Quest Detail API</li>
-          <li>Use a valid quest ID to test the Apply API</li>
-          <li>Check the browser console and network tab for additional debugging info</li>
+          <li><strong>開発サーバー再起動:</strong> 環境変数を反映させるため開発サーバーを再起動してください</li>
+          <li><strong>V2 APIテスト（推奨）:</strong> まずV2のAvailable/In Progress/Upcoming APIをテストしてクエストIDを取得</li>
+          <li><strong>新フィールド確認:</strong> V2のレスポンスで<code>recommended_skills_display</code>フィールドが含まれているか確認</li>
+          <li><strong>V1/V2比較:</strong> 同じクエストでV1とV2のレスポンスを比較し、フィールドの違いを確認</li>
+          <li><strong>クエスト詳細テスト:</strong> ステップ2で取得したクエストIDを使ってQuest Detail APIをテスト</li>
+          <li><strong>応募テスト:</strong> 有効なクエストIDを使ってApply APIをテスト</li>
+          <li><strong>デバッグ情報:</strong> ブラウザコンソールとネットワークタブで追加のデバッグ情報を確認</li>
         </ol>
+        <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+          <h4 className="font-semibold text-blue-800 mb-2">V2 API新機能チェックポイント:</h4>
+          <ul className="text-xs text-blue-700 list-disc list-inside space-y-1">
+            <li><code>recommended_skills_display</code>: 推奨スキル表示用フィールド</li>
+            <li>既存フィールドとの後方互換性</li>
+            <li>レスポンス構造の変更点</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
