@@ -155,7 +155,7 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
       <div className="px-3 pb-3 mt-auto">
         <div className="flex justify-center">
           {!isLocked ? (
-            <div className="bg-blue-500 text-white font-bold text-xs px-12 py-2 rounded-full">
+            <div className="bg-[#CCCCCC] text-white font-bold text-xs px-12 py-2 rounded-full">
               クエストを見る
             </div>
           ) : (
