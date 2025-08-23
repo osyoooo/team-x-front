@@ -104,9 +104,6 @@ export default function QuestPage() {
     }
   };
 
-  const handleViewDetails = (quest) => {
-    router.push(`/quest/${quest.id}`);
-  };
 
 
   if (!isAuthenticated) {
@@ -146,7 +143,6 @@ export default function QuestPage() {
                           key={quest.id}
                           quest={quest}
                           onJoin={handleJoinQuest}
-                          onViewDetails={handleViewDetails}
                         />
                       ))
                     ) : (
@@ -189,7 +185,6 @@ export default function QuestPage() {
                       <QuestCard
                         key={quest.id}
                         quest={quest}
-                        onViewDetails={handleViewDetails}
                         userQuest={true}
                       />
                     ))
@@ -211,7 +206,6 @@ export default function QuestPage() {
                     <QuestCard
                       key={quest.id}
                       quest={quest}
-                      onViewDetails={handleViewDetails}
                       isUpcoming={true}
                     />
                   ))

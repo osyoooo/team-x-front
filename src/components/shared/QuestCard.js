@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import StarRating from '@/components/ui/StarRating';
 import Button from '@/components/ui/Button';
 
@@ -21,21 +22,11 @@ const getRandomQuestImage = () => {
 export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = false }) {
   const isLocked = quest.isLocked || isUpcoming;
   
-  // デバッグ用ログ
-  console.log('QuestCard Debug:', {
-    questId: quest.id,
-    questTitle: quest.title,
-    isLocked,
-    isUpcoming,
-    questIsLocked: quest.isLocked,
-    onViewDetails: !!onViewDetails
-  });
-  
   // 画像ソースの決定：quest.iconが有効でない場合はランダム画像を使用
   const imageSource = quest.icon && quest.icon.trim() ? quest.icon : getRandomQuestImage();
 
-  return (
-    <div className={`relative bg-white border border-black rounded-lg overflow-hidden w-full max-w-sm md:max-w-md lg:max-w-lg ${isLocked ? 'opacity-60' : ''}`} style={{minHeight: '172px'}}>
+  const CardContent = (
+    <div className={`relative bg-white border border-black rounded-lg overflow-hidden w-full max-w-sm md:max-w-md lg:max-w-lg ${isLocked ? 'opacity-60 pointer-events-none' : 'hover:shadow-lg transition-shadow duration-200'} h-full flex flex-col`} style={{minHeight: '172px'}}>
       {/* ロック状態のオーバーレイ */}
       {isLocked && (
         <>
@@ -48,7 +39,7 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
         </>
       )}
 
-      <div className="flex h-full">
+      <div className="flex flex-grow">
         {/* 左側：アイコン */}
         <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 relative overflow-hidden mr-3 md:mr-4 self-center">
           <Image
@@ -161,29 +152,29 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
       </div>
 
       {/* アクションボタン */}
-      <div className="px-3 pb-3">
+      <div className="px-3 pb-3 mt-auto">
         <div className="flex justify-center">
           {!isLocked ? (
-            <Button
-              variant="quest"
-              size="sm"
-              onClick={() => onViewDetails?.(quest)}
-              className="font-bold text-xs px-12 py-2 rounded-full"
-            >
+            <div className="bg-blue-500 text-white font-bold text-xs px-12 py-2 rounded-full">
               クエストを見る
-            </Button>
+            </div>
           ) : (
-            <Button
-              variant="questDisabled"
-              size="sm"
-              disabled
-              className="font-bold text-xs px-12 py-2 rounded-full"
-            >
+            <div className="bg-gray-200 text-gray-500 font-bold text-xs px-12 py-2 rounded-full">
               {isUpcoming ? '解放待ち' : 'ロック中'}
-            </Button>
+            </div>
           )}
         </div>
       </div>
     </div>
+  );
+
+  if (isLocked) {
+    return CardContent;
+  }
+
+  return (
+    <Link href={`/quest/${quest.id}`} className="h-full block">
+      {CardContent}
+    </Link>
   );
 }
