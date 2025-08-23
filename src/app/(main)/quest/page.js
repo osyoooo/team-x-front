@@ -123,7 +123,7 @@ export default function QuestPage() {
         ) : (
           <div className="p-6">
             {/* タブ */}
-            <div className="mb-6 flex justify-center">
+            <div className="mb-6 flex justify-start">
               <Tabs 
                 tabs={tabs} 
                 activeTab={activeTab} 
