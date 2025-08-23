@@ -19,6 +19,7 @@ export default function QuestPage() {
   const [upcomingQuests, setUpcomingQuests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('available');
+  const [isAvailableExpanded, setIsAvailableExpanded] = useState(false);
 
   // タブ設定
   const tabs = [
@@ -133,19 +134,51 @@ export default function QuestPage() {
             {/* タブ内容 */}
             <div className="mb-12">
               {activeTab === 'available' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {availableQuests.length > 0 ? (
-                    availableQuests.map((quest) => (
-                      <QuestCard
-                        key={quest.id}
-                        quest={quest}
-                        onJoin={handleJoinQuest}
-                        onViewDetails={handleViewDetails}
-                      />
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-12">
-                      <div className="text-gray-500">応募可能なクエストがありません</div>
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {availableQuests.length > 0 ? (
+                      // 表示する件数を制御
+                      (availableQuests.length <= 4 || isAvailableExpanded 
+                        ? availableQuests 
+                        : availableQuests.slice(0, 4)
+                      ).map((quest) => (
+                        <QuestCard
+                          key={quest.id}
+                          quest={quest}
+                          onJoin={handleJoinQuest}
+                          onViewDetails={handleViewDetails}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-12">
+                        <div className="text-gray-500">応募可能なクエストがありません</div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* 折りたたみボタン（5件以上の場合のみ表示） */}
+                  {availableQuests.length > 4 && (
+                    <div className="flex justify-center mt-6">
+                      <button
+                        onClick={() => setIsAvailableExpanded(!isAvailableExpanded)}
+                        className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors duration-200"
+                      >
+                        {isAvailableExpanded ? (
+                          <>
+                            <span>折りたたむ</span>
+                            <svg className="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            <span>さらに表示 (+{availableQuests.length - 4}件)</span>
+                            <svg className="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
                     </div>
                   )}
                 </div>
