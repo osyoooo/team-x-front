@@ -115,13 +115,13 @@ export default function QuestPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-transparent">
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <Spinner size="lg" />
           </div>
         ) : (
-          <div className="p-6">
+          <>
             {/* タブ */}
             <div className="mb-6 flex justify-start">
               <Tabs 
@@ -230,7 +230,7 @@ export default function QuestPage() {
                 <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

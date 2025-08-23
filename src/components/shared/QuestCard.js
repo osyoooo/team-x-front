@@ -21,6 +21,16 @@ const getRandomQuestImage = () => {
 export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = false }) {
   const isLocked = quest.isLocked || isUpcoming;
   
+  // デバッグ用ログ
+  console.log('QuestCard Debug:', {
+    questId: quest.id,
+    questTitle: quest.title,
+    isLocked,
+    isUpcoming,
+    questIsLocked: quest.isLocked,
+    onViewDetails: !!onViewDetails
+  });
+  
   // 画像ソースの決定：quest.iconが有効でない場合はランダム画像を使用
   const imageSource = quest.icon && quest.icon.trim() ? quest.icon : getRandomQuestImage();
 
@@ -57,9 +67,30 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
             {quest.title}
           </h3>
 
-          {/* 星評価 */}
+          {/* 星評価と期間・報酬バッジを横並び */}
           <div className="mb-2 md:mb-3">
-            <StarRating rating={quest.difficulty_level || quest.starRating || 0} />
+            <div className="flex items-center gap-2 flex-wrap">
+              <StarRating rating={quest.difficulty_level || quest.starRating || 0} />
+              {/* 期間・報酬バッジ (応募可能の場合のみ) */}
+              {!isLocked && (quest.duration_display || quest.duration || quest.points_display || quest.reward) && (
+                <>
+                  {(quest.duration_display || quest.duration) && (
+                    <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
+                      <span className="text-black text-center text-xs">
+                        期間：{quest.duration_display || quest.duration}
+                      </span>
+                    </div>
+                  )}
+                  {(quest.points_display || quest.reward) && (
+                    <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
+                      <span className="text-black text-center text-xs">
+                        報酬：{quest.points_display || quest.reward}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* マッチ度 */}
@@ -82,29 +113,18 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
             ) : null}
           </div>
 
-          {/* 期間・報酬バッジ (応募可能の場合のみ) */}
-          {!isLocked && (quest.duration_display || quest.duration || quest.points_display || quest.reward) && (
-            <div className="flex flex-wrap gap-1 md:gap-2 mb-2 md:mb-3">
-              {(quest.duration_display || quest.duration) && (
-                <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
-                  <span className="text-black text-center text-xs">
-                    期間：{quest.duration_display || quest.duration}
-                  </span>
-                </div>
-              )}
-              {(quest.points_display || quest.reward) && (
-                <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
-                  <span className="text-black text-center text-xs">
-                    報酬：{quest.points_display || quest.reward}
-                  </span>
-                </div>
-              )}
+          {/* 提供団体 */}
+          {(quest.provider_name || quest.provider) && (
+            <div className="mb-2 md:mb-3">
+              <span className="text-xs text-black">
+                提供団体：{quest.provider_name || quest.provider}
+              </span>
             </div>
           )}
 
           {/* 募集人数・参加人数 (応募可能の場合のみ) */}
           {!isLocked && (quest.requiredParticipants || quest.participants_display || quest.participants) && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mb-2 md:mb-3">
               {quest.requiredParticipants && (
                 <div>
                   <span className="text-black text-xs">
@@ -137,15 +157,6 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
               </div>
             </div>
           )}
-
-          {/* 提供団体 */}
-          {(quest.provider_name || quest.provider) && (
-            <div className="mb-3">
-              <span className="text-xs text-black">
-                提供団体：{quest.provider_name || quest.provider}
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -154,15 +165,19 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
         <div className="flex justify-center">
           {!isLocked ? (
             <Button
+              variant="quest"
+              size="sm"
               onClick={() => onViewDetails?.(quest)}
-              className="bg-gray-300 text-white font-bold text-xs px-12 py-2 rounded-full hover:bg-gray-400"
+              className="font-bold text-xs px-12 py-2 rounded-full"
             >
               クエストを見る
             </Button>
           ) : (
             <Button
+              variant="questDisabled"
+              size="sm"
               disabled
-              className="bg-gray-200 text-gray-500 font-bold text-xs px-12 py-2 rounded-full cursor-not-allowed"
+              className="font-bold text-xs px-12 py-2 rounded-full"
             >
               {isUpcoming ? '解放待ち' : 'ロック中'}
             </Button>

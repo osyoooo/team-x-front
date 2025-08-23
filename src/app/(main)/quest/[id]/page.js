@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useUserStore } from '@/store/userStore';
 import { useUIStore } from '@/store/uiStore';
+import { questAPI } from '@/lib/questAPI';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Modal, { ConfirmModal } from '@/components/ui/Modal';
@@ -31,88 +32,36 @@ export default function QuestDetailPage() {
     const fetchQuestDetail = async (questId) => {
       try {
         setLoading(true);
-        // モックデータ
-        const mockQuests = {
-          '1': {
-            id: '1',
-            title: 'JavaScript基礎マスター',
-            description: 'JavaScriptの基本的な構文と概念を学びます。変数、関数、ループ、条件分岐など、プログラミングの基礎をしっかりと身につけましょう。',
-            difficulty: '初級',
-            estimatedTime: '2-3週間',
-            points: 100,
-            tags: ['JavaScript', 'プログラミング基礎', 'Web開発'],
-            status: 'available',
-            participants: 1247,
-            completionRate: 87,
-            objectives: [
-              '変数の宣言と使用方法を理解する',
-              '関数の定義と呼び出しを習得する',
-              'ループ処理（for, while）をマスターする',
-              '条件分岐（if, switch）を使いこなす',
-              '配列とオブジェクトの基本操作を学ぶ'
-            ],
-            curriculum: [
-              { title: '変数とデータ型', duration: '2時間', completed: false },
-              { title: '関数の基礎', duration: '3時間', completed: false },
-              { title: 'ループ処理', duration: '2時間', completed: false },
-              { title: '条件分岐', duration: '2時間', completed: false },
-              { title: '配列とオブジェクト', duration: '3時間', completed: false },
-              { title: '実践プロジェクト', duration: '4時間', completed: false }
-            ],
-            prerequisites: ['基本的なコンピューター操作', 'テキストエディタの使用経験'],
-            benefits: [
-              'プログラミングの基礎概念の理解',
-              'JavaScript開発環境の構築スキル',
-              '基本的なWebアプリケーション作成能力',
-              '次のステップへの準備完了'
-            ]
-          },
-          '2': {
-            id: '2',
-            title: 'React入門',
-            description: 'モダンなWebアプリケーション開発のためのReactライブラリを学習します。コンポーネント指向の開発手法を身につけましょう。',
-            difficulty: '中級',
-            estimatedTime: '3-4週間',
-            points: 150,
-            tags: ['React', 'JavaScript', 'UI開発'],
-            status: 'available',
-            participants: 892,
-            completionRate: 76,
-            objectives: [
-              'Reactの基本概念を理解する',
-              'コンポーネントの作成と管理',
-              'Stateとpropsの使用方法',
-              'イベントハンドリングの実装',
-              '実際のアプリケーション開発'
-            ],
-            curriculum: [
-              { title: 'Reactの基礎', duration: '3時間', completed: false },
-              { title: 'コンポーネント開発', duration: '4時間', completed: false },
-              { title: 'State管理', duration: '3時間', completed: false },
-              { title: 'イベント処理', duration: '2時間', completed: false },
-              { title: 'フォーム操作', duration: '3時間', completed: false },
-              { title: 'TODOアプリ作成', duration: '5時間', completed: false }
-            ],
-            prerequisites: ['JavaScript基礎知識', 'HTML/CSS理解', 'モダンJavaScript(ES6+)'],
-            benefits: [
-              'モダンUI開発スキル',
-              'コンポーネント指向思考',
-              'React生態系の理解',
-              'フロントエンド開発者への道筋'
-            ]
-          }
-        };
-
-        const questData = mockQuests[questId];
-        if (questData) {
+        const response = await questAPI.getQuestById(questId);
+        
+        if (response.success && response.data) {
+          // APIレスポンスを詳細ページ用のフォーマットに変換
+          const questData = {
+            id: response.data.id,
+            title: response.data.title,
+            description: response.data.description || response.data.objective || '',
+            difficulty: getDifficultyText(response.data.difficulty_level),
+            estimatedTime: response.data.duration_display || '未定',
+            points: parseInt(response.data.points_display?.replace(/[^\d]/g, '') || '0'),
+            tags: response.data.skills || [],
+            status: 'available', // デフォルトは応募可能
+            participants: parseInt(response.data.participants_display?.replace(/[^\d]/g, '') || '0'),
+            completionRate: 85, // デフォルト値（APIに含まれていない場合）
+            objectives: response.data.benefits || [],
+            curriculum: [], // カリキュラム情報がない場合は空配列
+            prerequisites: [], // 前提条件がない場合は空配列
+            benefits: response.data.benefits || [],
+            provider: response.data.provider_name || response.data.provider
+          };
           setQuest(questData);
         } else {
-          router.push('/quest');
+          throw new Error('クエストデータの取得に失敗しました');
         }
       } catch (error) {
+        console.error('Quest detail fetch error:', error);
         addNotification({
           type: 'error',
-          message: 'クエスト詳細の取得に失敗しました'
+          message: error.message || 'クエスト詳細の取得に失敗しました'
         });
         router.push('/quest');
       } finally {
@@ -125,13 +74,25 @@ export default function QuestDetailPage() {
     }
   }, [isAuthenticated, params.id, router, addNotification]);
 
-  const handleJoinQuest = () => {
-    setQuest(prev => ({ ...prev, status: 'in_progress' }));
-    setIsJoinModalOpen(false);
-    addNotification({
-      type: 'success',
-      message: `「${quest.title}」に参加しました！`
-    });
+  const handleJoinQuest = async () => {
+    try {
+      const response = await questAPI.joinQuest(quest.id);
+      if (response.success) {
+        setQuest(prev => ({ ...prev, status: 'in_progress' }));
+        setIsJoinModalOpen(false);
+        addNotification({
+          type: 'success',
+          message: response.message || `「${quest.title}」に参加しました！`
+        });
+      }
+    } catch (error) {
+      console.error('Join quest error:', error);
+      addNotification({
+        type: 'error',
+        message: error.message || 'クエストへの参加に失敗しました'
+      });
+      setIsJoinModalOpen(false);
+    }
   };
 
   const handleCompleteQuest = () => {
@@ -141,6 +102,17 @@ export default function QuestDetailPage() {
       type: 'success',
       message: `「${quest.title}」を完了しました！ポイントを獲得しました🎉`
     });
+  };
+
+  const getDifficultyText = (level) => {
+    switch (level) {
+      case 1:
+      case 2: return '初級';
+      case 3: return '中級';
+      case 4:
+      case 5: return '上級';
+      default: return '未定';
+    }
   };
 
   const getDifficultyColor = (difficulty) => {
