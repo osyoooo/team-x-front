@@ -40,7 +40,7 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
 
       <div className="flex h-full">
         {/* 左側：アイコン */}
-        <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 relative overflow-hidden mr-3 md:mr-4">
+        <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 relative overflow-hidden mr-3 md:mr-4 self-center">
           <Image
             src={imageSource}
             alt={quest.title}
@@ -59,63 +59,71 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
 
           {/* 星評価 */}
           <div className="mb-2 md:mb-3">
-            <StarRating rating={quest.starRating} />
+            <StarRating rating={quest.difficulty_level || quest.starRating || 0} />
           </div>
 
           {/* マッチ度 */}
           <div className="mb-1 md:mb-2">
             <span className="font-bold text-black text-xs md:text-sm">
-              マッチ度： {quest.matchPercentage}%
+              マッチ度： {quest.match_rate || quest.matchPercentage}%
             </span>
           </div>
 
           {/* スキル情報 */}
           <div className="mb-2 md:mb-3">
-            {quest.requiredSkills ? (
+            {quest.requiredSkills || quest.skillTrend ? (
               <span className="text-black text-xs md:text-sm">
-                推奨スキル： {quest.requiredSkills}
+                {quest.requiredSkills ? `推奨スキル： ${quest.requiredSkills}` : `スキル傾向： ${quest.skillTrend}`}
               </span>
-            ) : (
+            ) : quest.objective ? (
               <span className="text-black text-xs md:text-sm">
-                スキル傾向：{quest.skillTrend}
+                目的： {quest.objective}
               </span>
-            )}
+            ) : null}
           </div>
 
           {/* 期間・報酬バッジ (応募可能の場合のみ) */}
-          {!isLocked && quest.duration && (
+          {!isLocked && (quest.duration_display || quest.duration || quest.points_display || quest.reward) && (
             <div className="flex flex-wrap gap-1 md:gap-2 mb-2 md:mb-3">
-              <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
-                <span className="text-black text-center text-xs">
-                  期間：{quest.duration}
-                </span>
-              </div>
-              <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
-                <span className="text-black text-center text-xs">
-                  報酬：{quest.reward}
-                </span>
-              </div>
+              {(quest.duration_display || quest.duration) && (
+                <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
+                  <span className="text-black text-center text-xs">
+                    期間：{quest.duration_display || quest.duration}
+                  </span>
+                </div>
+              )}
+              {(quest.points_display || quest.reward) && (
+                <div className="rounded-full px-2 py-1" style={{backgroundColor: '#E5E5E5'}}>
+                  <span className="text-black text-center text-xs">
+                    報酬：{quest.points_display || quest.reward}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
           {/* 募集人数・参加人数 (応募可能の場合のみ) */}
-          {!isLocked && quest.requiredParticipants && (
+          {!isLocked && (quest.requiredParticipants || quest.participants_display || quest.participants) && (
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-              <div>
-                <span className="text-black text-xs">
-                  募集人数： {quest.requiredParticipants}名
-                </span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3.5 h-3.5 mr-1 flex items-center justify-center">
-                  <svg className="w-3 h-3" fill="#575757" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
+              {quest.requiredParticipants && (
+                <div>
+                  <span className="text-black text-xs">
+                    募集人数： {quest.requiredParticipants}名
+                  </span>
                 </div>
-                <span className="text-black text-xs">
-                  参加人数： {quest.participants}名
-                </span>
-              </div>
+              )}
+              {(quest.participants_display || quest.participants) && (
+                <div className="flex items-center">
+                  <div className="w-3.5 h-3.5 mr-1 flex items-center justify-center">
+                    <svg className="w-3 h-3" fill="#575757" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-black text-xs">
+                    参加人数： {quest.participants_display || quest.participants || '0'}名
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -131,10 +139,10 @@ export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = f
           )}
 
           {/* 提供団体 */}
-          {quest.provider && (
+          {(quest.provider_name || quest.provider) && (
             <div className="mb-3">
               <span className="text-xs text-black">
-                提供団体：{quest.provider}
+                提供団体：{quest.provider_name || quest.provider}
               </span>
             </div>
           )}
