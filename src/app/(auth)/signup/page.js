@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import TopNavigation from '@/components/shared/TopNavigation';
+import SocialButton from '@/components/ui/SocialButton';
+import UnderlineInput from '@/components/ui/UnderlineInput';
 import { useUserStore } from '@/store/userStore';
 import { useUIStore } from '@/store/uiStore';
 import { authAPI } from '@/lib/auth';
@@ -13,12 +13,11 @@ export default function SignUpPage() {
   const router = useRouter();
   const { login } = useUserStore();
   const { setLoading, addNotification } = useUIStore();
+  const isLoading = useUIStore((state) => state.loading.auth);
   
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: '',
-    nickname: '',
   });
   const [errors, setErrors] = useState({});
 
@@ -29,7 +28,6 @@ export default function SignUpPage() {
       [name]: value,
     }));
     
-    // エラーをクリア
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -47,22 +45,10 @@ export default function SignUpPage() {
       newErrors.email = '有効なメールアドレスを入力してください';
     }
     
-    if (!formData.nickname) {
-      newErrors.nickname = 'ニックネームを入力してください';
-    } else if (formData.nickname.length < 2) {
-      newErrors.nickname = 'ニックネームは2文字以上で入力してください';
-    }
-    
     if (!formData.password) {
       newErrors.password = 'パスワードを入力してください';
     } else if (formData.password.length < 6) {
       newErrors.password = 'パスワードは6文字以上で入力してください';
-    }
-    
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'パスワード（確認）を入力してください';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'パスワードが一致しません';
     }
     
     setErrors(newErrors);
@@ -82,7 +68,6 @@ export default function SignUpPage() {
       const response = await authAPI.register({
         email: formData.email,
         password: formData.password,
-        nickname: formData.nickname,
       });
       
       if (response.success) {
@@ -105,74 +90,105 @@ export default function SignUpPage() {
     }
   };
 
+  const handleSocialLogin = (provider) => {
+    addNotification({
+      type: 'info',
+      message: `${provider}認証は準備中です`,
+    });
+  };
+
+  const handleLogin = () => {
+    router.push('/login');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Team X アカウント作成
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            すでにアカウントをお持ちの方は{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              ログイン
-            </Link>
-          </p>
-        </div>
+    <div className="min-h-screen bg-white">
+      {/* Mobile Container - 393px width on mobile, responsive on larger screens */}
+      <div className="max-w-[393px] sm:max-w-md md:max-w-lg mx-auto bg-white min-h-screen relative">
+        {/* Top Navigation */}
+        <TopNavigation />
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <Input
-              label="ニックネーム"
-              name="nickname"
-              type="text"
-              value={formData.nickname}
-              onChange={handleChange}
-              error={errors.nickname}
-              placeholder="あなたのニックネーム"
-            />
-            
-            <Input
+        {/* Main Content */}
+        <div className="px-5 sm:px-6 pt-10">
+          {/* Title */}
+          <h1 className="text-xl font-bold text-black mb-4">
+            新規アカウント登録
+          </h1>
+          
+          {/* Subtitle */}
+          <p className="text-xs text-black mb-10">
+            利用規約とプライバシーポリシーに同意の上、ご利用ください
+          </p>
+          
+          {/* Social Login Buttons */}
+          <div className="space-y-4 mb-8">
+            <SocialButton type="apple" onClick={() => handleSocialLogin('Apple')}>
+              Appleで登録
+            </SocialButton>
+            <SocialButton type="google" onClick={() => handleSocialLogin('Google')}>
+              Googleで登録
+            </SocialButton>
+          </div>
+          
+          {/* Divider with "or" */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#CCCCCC]"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-4 text-sm text-black">or</span>
+            </div>
+          </div>
+          
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-12">
+            <UnderlineInput
               label="メールアドレス"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
               error={errors.email}
-              placeholder="your@email.com"
             />
             
-            <Input
+            <UnderlineInput
               label="パスワード"
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
               error={errors.password}
-              placeholder="6文字以上"
             />
             
-            <Input
-              label="パスワード（確認）"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              error={errors.confirmPassword}
-              placeholder="パスワードを再入力"
-            />
-          </div>
-
-          <div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={useUIStore((state) => state.loading.auth)}
+            {/* Submit Button */}
+            <div className="pt-8">
+              <button
+                type="submit"
+                disabled={!formData.email || !formData.password || isLoading}
+                className={`
+                  w-full h-14 rounded-full text-xs font-normal transition-opacity duration-200
+                  ${!formData.email || !formData.password || isLoading
+                    ? 'bg-[#E5E5E5] text-white cursor-not-allowed' 
+                    : 'bg-black text-white hover:opacity-80'
+                  }
+                `}
+              >
+                {isLoading ? 'アカウント作成中...' : 'はじめる'}
+              </button>
+            </div>
+          </form>
+          
+          {/* Login Link */}
+          <div className="pt-8 pb-8">
+            <p className="text-xs text-black mb-3">アカウントをお持ちの方</p>
+            <button
+              onClick={handleLogin}
+              className="w-full h-14 rounded-full bg-white text-black text-xs font-normal border border-black hover:opacity-80 transition-opacity duration-200"
             >
-              {useUIStore((state) => state.loading.auth) ? 'アカウント作成中...' : 'アカウント作成'}
-            </Button>
+              ログイン
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

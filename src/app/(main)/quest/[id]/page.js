@@ -35,6 +35,13 @@ export default function QuestDetailPage() {
         const response = await questAPI.getQuestById(questId);
         
         if (response.success && response.data) {
+          // 期間表示を生成
+          const formatDuration = (months) => {
+            if (!months) return '未定';
+            if (months < 1) return `${Math.round(months * 4)}週間`;
+            return `${months}ヶ月`;
+          };
+
           // APIレスポンスを詳細ページ用のフォーマットに変換
           const questData = {
             id: response.data.id,
@@ -43,25 +50,26 @@ export default function QuestDetailPage() {
             objective: response.data.objective || '',
             difficulty: getDifficultyText(response.data.difficulty_level),
             difficulty_level: response.data.difficulty_level,
-            estimatedTime: response.data.duration_display || '未定',
-            points: response.data.points?.total || parseInt(response.data.points_display?.replace(/[^\d]/g, '') || '0'),
-            points_detail: response.data.points,
+            estimatedTime: formatDuration(response.data.duration_months),
+            points: response.data.total_points || 0,
+            points_detail: null, // 詳細ポイント情報は存在しない
             tags: response.data.skills || [],
-            recommended_skills: response.data.recommended_skills_display || '',
-            status: response.data.user_status === 'applied' ? 'in_progress' : 'available',
-            participants: parseInt(response.data.participants_display?.replace(/[^\d]/g, '') || '0'),
-            max_participants: response.data.max_participants || 0,
+            recommended_skills: response.data.recommended_skills || '',
+            status: 'available', // デフォルトは応募可能
+            participants: 0, // APIに参加者情報なし
+            max_participants: 0, // APIに最大参加者情報なし
             match_rate: response.data.match_rate || 0,
-            completionRate: 85, // デフォルト値（APIに含まれていない場合）
+            completionRate: 85, // デフォルト値
             objectives: response.data.benefits || [],
             curriculum: [], // カリキュラム情報がない場合は空配列
             prerequisites: [], // 前提条件がない場合は空配列
             prerequisite_text: response.data.prerequisite_text || '',
             prerequisite_score: response.data.prerequisite_score || 0,
             benefits: response.data.benefits || [],
-            provider: response.data.provider_name || response.data.provider,
+            provider: response.data.provider_name || '',
             deadline: response.data.deadline || '',
-            is_urgent: response.data.is_urgent || false
+            is_urgent: false, // デフォルト値
+            quest_type: response.data.quest_type || ''
           };
           setQuest(questData);
         } else {
@@ -240,24 +248,10 @@ export default function QuestDetailPage() {
                 </div>
               </div>
 
-              {/* 募集人数・参加人数 */}
-              <div className="flex flex-wrap gap-4 mb-3 text-sm text-black">
-                <div>募集人数： {quest.max_participants}名</div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3.5 h-3.5 flex items-center justify-center">
-                    <svg className="w-3 h-3" fill="#575757" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <span>参加人数： {quest.participants}名</span>
-                </div>
-              </div>
-
-              {/* 獲得スコア詳細 */}
-              {quest.points_detail && (
+              {/* 獲得スコア */}
+              {quest.points > 0 && (
                 <div className="text-sm text-black mb-3">
-                  獲得スコア：<br />
-                  みつける+{quest.points_detail.find || 0}、カタチにする+{quest.points_detail.shape || 0}、とどける+{quest.points_detail.deliver || 0}
+                  獲得スコア： +{quest.points}
                 </div>
               )}
             </div>
@@ -279,7 +273,7 @@ export default function QuestDetailPage() {
                 <div>{quest.prerequisite_text}</div>
               )}
               {quest.tags.map((skill, index) => (
-                <div key={index}>{skill.name || skill}</div>
+                <div key={index}>{skill.skill_name || skill.name || skill}</div>
               ))}
             </div>
           </div>
@@ -311,8 +305,8 @@ export default function QuestDetailPage() {
               <div className="space-y-1">
                 {quest.benefits.map((benefit, index) => (
                   <div key={index} className="text-sm text-black">
-                    {benefit.name || benefit}
-                    {benefit.type === 'recommendation' && ' （昨年実績：参加者の80%が推薦獲得）'}
+                    {benefit.benefit_name || benefit.name || benefit}
+                    {benefit.benefit_type === 'recommendation' && ' （昨年実績：参加者の80%が推薦獲得）'}
                   </div>
                 ))}
               </div>

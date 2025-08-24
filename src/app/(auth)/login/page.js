@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import TopNavigation from '@/components/shared/TopNavigation';
+import SocialButton from '@/components/ui/SocialButton';
+import UnderlineInput from '@/components/ui/UnderlineInput';
 import { useUserStore } from '@/store/userStore';
 import { useUIStore } from '@/store/uiStore';
 import { authAPI } from '@/lib/auth';
@@ -13,6 +13,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login } = useUserStore();
   const { setLoading, addNotification } = useUIStore();
+  const isLoading = useUIStore((state) => state.loading.auth);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -87,70 +88,111 @@ export default function LoginPage() {
     }
   };
 
+  const handleSocialLogin = (provider) => {
+    addNotification({
+      type: 'info',
+      message: `${provider}認証は準備中です`,
+    });
+  };
+
+  const handleSignup = () => {
+    router.push('/signup');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Team X にログイン
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            または{' '}
-            <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-              新規アカウントを作成
-            </Link>
-          </p>
-        </div>
+    <div className="min-h-screen bg-white">
+      {/* Mobile Container - 393px width on mobile, responsive on larger screens */}
+      <div className="max-w-[393px] sm:max-w-md md:max-w-lg mx-auto bg-white min-h-screen relative">
+        {/* Top Navigation */}
+        <TopNavigation />
+
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <Input
+        {/* Main Content */}
+        <div className="px-5 sm:px-6 pt-10">
+          {/* Title */}
+          <h1 className="text-xl font-bold text-black mb-4">
+            ログイン
+          </h1>
+          
+          {/* Subtitle */}
+          <p className="text-xs text-black mb-10">
+            利用規約とプライバシーポリシーに同意の上、ご利用ください
+          </p>
+
+          
+          {/* Social Login Buttons */}
+          <div className="space-y-4 mb-8">
+            <SocialButton type="apple" onClick={() => handleSocialLogin('Apple')}>
+              Appleでログイン
+            </SocialButton>
+            <SocialButton type="google" onClick={() => handleSocialLogin('Google')}>
+              Googleでログイン
+            </SocialButton>
+          </div>
+
+          
+          {/* Divider with "or" */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#CCCCCC]"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-4 text-sm text-black">or</span>
+            </div>
+          </div>
+
+          
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-12">
+            <UnderlineInput
               label="メールアドレス"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
               error={errors.email}
-              placeholder="demo@teamx.com"
             />
             
-            <Input
+            <UnderlineInput
               label="パスワード"
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
               error={errors.password}
-              placeholder="demo123"
             />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                パスワードを忘れた方
-              </Link>
+            
+            {/* Submit Button */}
+            <div className="pt-8">
+              <button
+                type="submit"
+                disabled={!formData.email || !formData.password || isLoading}
+                className={`
+                  w-full h-14 rounded-full text-xs font-normal transition-opacity duration-200
+                  ${
+                    !formData.email || !formData.password || isLoading
+                    ? 'bg-[#E5E5E5] text-white cursor-not-allowed' 
+                    : 'bg-black text-white hover:opacity-80'
+                  }
+                `}
+              >
+                {isLoading ? 'ログイン中...' : 'ログイン'}
+              </button>
             </div>
-          </div>
+          </form>
 
-          <div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={useUIStore((state) => state.loading.auth)}
-            >
-              {useUIStore((state) => state.loading.auth) ? 'ログイン中...' : 'ログイン'}
-            </Button>
-          </div>
           
-          <div className="mt-4 p-4 bg-blue-50 rounded-md">
-            <p className="text-sm text-blue-800">
-              <strong>デモアカウント:</strong><br />
-              メール: demo@teamx.com<br />
-              パスワード: demo123
-            </p>
+          {/* Signup Link */}
+          <div className="pt-8 pb-8">
+            <p className="text-xs text-black mb-3">アカウントをお持ちでない方</p>
+            <button
+              onClick={handleSignup}
+              className="w-full h-14 rounded-full bg-white text-black text-xs font-normal border border-black hover:opacity-80 transition-opacity duration-200"
+            >
+              はじめる
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
