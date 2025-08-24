@@ -9,6 +9,8 @@
 | 6 | /api/v1/quests/v2/available   | GET | 応募可能なクエスト一覧を取得（v2）     | なし | JSON | {"status": "available", "quests": [{...}], "total_count": 10}  | 不要（user_id=1固定） | 200, 500 |
 | 7 | /api/v1/quests/v2/in-progress | GET | 進行中のクエスト一覧を取得（v2）      | なし | JSON | {"status": "in_progress", "quests": [{...}], "total_count": 5} | 不要（user_id=1固定） | 200, 500 |
 | 8 | /api/v1/quests/v2/upcoming    | GET | まもなく解放されるクエスト一覧を取得（v2） | なし | JSON | {"status": "upcoming", "quests": [{...}], "total_count": 3}    | 不要（user_id=1固定） | 200, 500 |
+| 9  | /api/v1/study/dashboard | GET | 学習ダッシュボード情報を取得 | なし | JSON | {"goal": {"current_score": 967, "next_goal_score": 1000, "progress_percent": 34, "remaining_percent": 66, "remaining_text": "次のゴールまであと66%"}, "ongoing": [{"id": 4, "title": "Webサイト制作入門", "progress_percent": 38}], "recommended": [{"id": 3, "title": "JavaScriptで作る動くWebページ", "total_score": 123}]} | 不要（user_id=1固定） | 200, 500 |
+| 10 | /api/v1/study/contents  | GET | 学習コンテンツ一覧を取得   | なし | JSON | [{"id": 1, "title": "ゼロから始めるWebサイト制作", "description": "...", "cover_image_url": null, "provider_name": "Progate", "difficulty_level": 2, "total_score": 60}]                                                                                                                                          | 不要（user_id=1固定） | 200, 500 |
 
 # レスポンスフィールド詳細（クエスト一覧共通）
 | フィールド名               | 型           | 説明                            |

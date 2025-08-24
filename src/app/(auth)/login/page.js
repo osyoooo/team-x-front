@@ -20,6 +20,8 @@ export default function LoginPage() {
     password: '',
   });
   const [errors, setErrors] = useState({});
+  const [fieldTouched, setFieldTouched] = useState({});
+  const [showLoginHelp, setShowLoginHelp] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,6 +30,15 @@ export default function LoginPage() {
       [name]: value,
     }));
     
+    // フィールドがタッチされたことを記録
+    setFieldTouched(prev => ({
+      ...prev,
+      [name]: true,
+    }));
+    
+    // リアルタイムバリデーション
+    validateField(name, value);
+    
     // エラーをクリア
     if (errors[name]) {
       setErrors(prev => ({
@@ -35,6 +46,41 @@ export default function LoginPage() {
         [name]: '',
       }));
     }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setFieldTouched(prev => ({
+      ...prev,
+      [name]: true,
+    }));
+    validateField(name, value);
+  };
+
+  const validateField = (name, value) => {
+    const newErrors = { ...errors };
+    
+    if (name === 'email' && fieldTouched.email) {
+      if (!value) {
+        newErrors.email = 'メールアドレスを入力してください';
+      } else if (!/\S+@\S+\.\S+/.test(value)) {
+        newErrors.email = '有効なメールアドレスを入力してください';
+      } else {
+        delete newErrors.email;
+      }
+    }
+    
+    if (name === 'password' && fieldTouched.password) {
+      if (!value) {
+        newErrors.password = 'パスワードを入力してください';
+      } else if (value.length < 6) {
+        newErrors.password = 'パスワードは6文字以上で入力してください';
+      } else {
+        delete newErrors.password;
+      }
+    }
+    
+    setErrors(newErrors);
   };
 
   const validateForm = () => {
@@ -69,7 +115,7 @@ export default function LoginPage() {
       const response = await authAPI.login(formData.email, formData.password);
       
       if (response.success) {
-        login(response.data.user, response.data.token);
+        login(response.data.user, response.data.token, response.data.session);
         addNotification({
           type: 'success',
           message: 'ログインしました',
@@ -83,20 +129,76 @@ export default function LoginPage() {
         type: 'error',
         message: error.message,
       });
+      
+      // ログイン失敗時にヘルプを表示
+      setShowLoginHelp(true);
     } finally {
       setLoading('auth', false);
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    addNotification({
-      type: 'info',
-      message: `${provider}認証は準備中です`,
-    });
+  const handleSocialLogin = async (provider) => {
+    setLoading('auth', true);
+    
+    try {
+      let response;
+      if (provider === 'Google') {
+        response = await authAPI.signInWithGoogle();
+      } else if (provider === 'Apple') {
+        response = await authAPI.signInWithApple();
+      }
+      
+      if (response?.success) {
+        addNotification({
+          type: 'info',
+          message: `${provider}認証を開始しています...`,
+        });
+        // OAuth認証は別ウィンドウまたはリダイレクトで処理されるため、
+        // 実際のログイン処理はauth state changeリスナーで自動的に行われます
+      }
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        message: error.message,
+      });
+    } finally {
+      setLoading('auth', false);
+    }
   };
 
   const handleSignup = () => {
     router.push('/signup');
+  };
+
+  const handlePasswordReset = async () => {
+    if (!formData.email) {
+      addNotification({
+        type: 'warning',
+        message: 'パスワードリセットにはメールアドレスを入力してください',
+      });
+      return;
+    }
+
+    setLoading('auth', true);
+
+    try {
+      const response = await authAPI.requestPasswordReset(formData.email);
+      
+      if (response.success) {
+        addNotification({
+          type: 'success',
+          message: 'パスワードリセットメールを送信しました。メールをご確認ください。',
+        });
+        setShowLoginHelp(false);
+      }
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        message: error.message || 'パスワードリセットメールの送信に失敗しました',
+      });
+    } finally {
+      setLoading('auth', false);
+    }
   };
 
   return (
@@ -150,6 +252,7 @@ export default function LoginPage() {
               type="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
               error={errors.email}
             />
             
@@ -159,6 +262,7 @@ export default function LoginPage() {
               type="password"
               value={formData.password}
               onChange={handleChange}
+              onBlur={handleBlur}
               error={errors.password}
             />
             
@@ -181,6 +285,44 @@ export default function LoginPage() {
             </div>
           </form>
 
+          {/* Login Help Section */}
+          {showLoginHelp && (
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="text-sm font-medium text-blue-800 mb-3">
+                ログインできない場合は
+              </h3>
+              <div className="space-y-2 text-xs text-blue-700">
+                <p>• メールアドレスとパスワードに間違いがないかご確認ください</p>
+                <p>• パスワードを忘れた場合は、下記のリセット機能をご利用ください</p>
+                <p>• メール認証が完了していない可能性があります</p>
+              </div>
+              
+              <div className="mt-4">
+                <button
+                  onClick={() => {
+                    if (formData.email) {
+                      handlePasswordReset();
+                    } else {
+                      addNotification({
+                        type: 'warning',
+                        message: 'パスワードリセットにはメールアドレスを入力してください',
+                      });
+                    }
+                  }}
+                  className="text-xs text-blue-600 underline hover:text-blue-800"
+                >
+                  パスワードリセットメールを送信
+                </button>
+              </div>
+              
+              <button
+                onClick={() => setShowLoginHelp(false)}
+                className="mt-3 text-xs text-gray-500 underline hover:text-gray-700"
+              >
+                ヘルプを閉じる
+              </button>
+            </div>
+          )}
           
           {/* Signup Link */}
           <div className="pt-8 pb-8">

@@ -8,6 +8,7 @@ export default function UnderlineInput({
   type = 'text',
   value = '',
   onChange,
+  onBlur,
   error = '',
   placeholder = '',
   className = '',
@@ -34,7 +35,12 @@ export default function UnderlineInput({
           value={value}
           onChange={onChange}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={(e) => {
+            setIsFocused(false);
+            if (onBlur) {
+              onBlur(e);
+            }
+          }}
           placeholder={placeholder}
           className={`
             w-full 

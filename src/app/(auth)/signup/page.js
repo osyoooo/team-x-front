@@ -11,7 +11,7 @@ import { authAPI } from '@/lib/auth';
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { login } = useUserStore();
+  const { login, setPendingEmailVerification } = useUserStore();
   const { setLoading, addNotification } = useUIStore();
   const isLoading = useUIStore((state) => state.loading.auth);
   
@@ -71,12 +71,23 @@ export default function SignUpPage() {
       });
       
       if (response.success) {
-        login(response.data.user, response.data.token);
-        addNotification({
-          type: 'success',
-          message: 'アカウントを作成しました',
-        });
-        router.push('/');
+        if (response.data.session) {
+          // セッションがある場合（即座にログイン）
+          login(response.data.user, response.data.token, response.data.session);
+          addNotification({
+            type: 'success',
+            message: 'アカウントを作成しました',
+          });
+          router.push('/');
+        } else {
+          // セッションがない場合（メール確認が必要）
+          setPendingEmailVerification(formData.email);
+          addNotification({
+            type: 'success',
+            message: response.message || 'アカウント確認のメールを送信しました',
+          });
+          router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+        }
       } else {
         throw new Error(response.message || 'アカウント作成に失敗しました');
       }
@@ -90,11 +101,33 @@ export default function SignUpPage() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    addNotification({
-      type: 'info',
-      message: `${provider}認証は準備中です`,
-    });
+  const handleSocialLogin = async (provider) => {
+    setLoading('auth', true);
+    
+    try {
+      let response;
+      if (provider === 'Google') {
+        response = await authAPI.signInWithGoogle();
+      } else if (provider === 'Apple') {
+        response = await authAPI.signInWithApple();
+      }
+      
+      if (response?.success) {
+        addNotification({
+          type: 'info',
+          message: `${provider}認証を開始しています...`,
+        });
+        // OAuth認証は別ウィンドウまたはリダイレクトで処理されるため、
+        // 実際のログイン処理はauth state changeリスナーで自動的に行われます
+      }
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        message: error.message,
+      });
+    } finally {
+      setLoading('auth', false);
+    }
   };
 
   const handleLogin = () => {
