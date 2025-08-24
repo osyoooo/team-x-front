@@ -44,7 +44,7 @@ export default function BottomNav() {
                 className={`transition-all duration-200 ${
                   isActiveLink(item.href)
                     ? 'brightness-0 saturate-100 invert'
-                    : 'brightness-50 saturate-50'
+                    : 'brightness-75 saturate-75'
                 }`}
               />
             </div>
