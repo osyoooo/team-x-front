@@ -317,6 +317,46 @@ export default function ApiTestPage() {
           {formatResponse(responses.upcomingV2)}
         </div>
 
+        {/* Study APIs Section */}
+        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+          <h2 className="text-2xl font-bold text-blue-800 mb-2">Study APIs</h2>
+          <p className="text-sm text-blue-700">学習関連のAPI - ダッシュボード情報と学習コンテンツの取得</p>
+        </div>
+
+        {/* 1. Study Dashboard */}
+        <div className="border border-blue-200 p-6 rounded-lg bg-blue-50">
+          <h3 className="text-xl font-semibold mb-4">1. Get Study Dashboard</h3>
+          <p className="text-sm text-gray-600 mb-2">GET /api/v1/study/dashboard</p>
+          <p className="text-xs text-blue-600 mb-4">✓ 学習の進捗やダッシュボード情報を取得</p>
+          
+          <button
+            onClick={() => testAPI('/api/v1/study/dashboard', 'GET', null, 'studyDashboard')}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+          >
+            {loading ? 'Testing...' : 'Test Study Dashboard'}
+          </button>
+          
+          {formatResponse(responses.studyDashboard)}
+        </div>
+
+        {/* 2. Study Contents */}
+        <div className="border border-blue-200 p-6 rounded-lg bg-blue-50">
+          <h3 className="text-xl font-semibold mb-4">2. Get Study Contents</h3>
+          <p className="text-sm text-gray-600 mb-2">GET /api/v1/study/contents</p>
+          <p className="text-xs text-blue-600 mb-4">✓ 利用可能な学習コンテンツ一覧を取得</p>
+          
+          <button
+            onClick={() => testAPI('/api/v1/study/contents', 'GET', null, 'studyContents')}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+          >
+            {loading ? 'Testing...' : 'Test Study Contents'}
+          </button>
+          
+          {formatResponse(responses.studyContents)}
+        </div>
+
         {/* V1 APIs Section */}
         <div className="bg-yellow-50 p-4 rounded-lg mb-6">
           <h2 className="text-2xl font-bold text-yellow-800 mb-2">V1 APIs (Legacy)</h2>
@@ -441,6 +481,7 @@ export default function ApiTestPage() {
           <li><strong>開発サーバー再起動:</strong> 環境変数を反映させるため開発サーバーを再起動してください</li>
           <li><strong>V2 APIテスト（推奨）:</strong> まずV2のAvailable/In Progress/Upcoming APIをテストしてクエストIDを取得</li>
           <li><strong>新フィールド確認:</strong> V2のレスポンスで<code>recommended_skills_display</code>フィールドが含まれているか確認</li>
+          <li><strong>Study APIテスト:</strong> Study DashboardとStudy ContentsのAPIをテストして学習関連データを確認</li>
           <li><strong>V1/V2比較:</strong> 同じクエストでV1とV2のレスポンスを比較し、フィールドの違いを確認</li>
           <li><strong>クエスト詳細テスト:</strong> ステップ5で取得したクエストIDを使ってQuest Detail APIをテスト</li>
           <li><strong>応募テスト:</strong> 有効なクエストIDを使ってApply APIをテスト</li>
@@ -458,8 +499,18 @@ export default function ApiTestPage() {
         </div>
         
         <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
-          <h4 className="font-semibold text-blue-800 mb-2">V2 API新機能チェックポイント:</h4>
+          <h4 className="font-semibold text-blue-800 mb-2">Study API チェックポイント:</h4>
           <ul className="text-xs text-blue-700 list-disc list-inside space-y-1">
+            <li><code>/api/v1/study/dashboard</code>: 学習の進捗やダッシュボード情報</li>
+            <li><code>/api/v1/study/contents</code>: 利用可能な学習コンテンツ一覧</li>
+            <li>レスポンス構造と学習関連データの確認</li>
+            <li>認証が必要なAPIのテスト</li>
+          </ul>
+        </div>
+
+        <div className="mt-4 p-3 bg-green-50 rounded border border-green-200">
+          <h4 className="font-semibold text-green-800 mb-2">V2 API新機能チェックポイント:</h4>
+          <ul className="text-xs text-green-700 list-disc list-inside space-y-1">
             <li><code>recommended_skills_display</code>: 推奨スキル表示用フィールド</li>
             <li>既存フィールドとの後方互換性</li>
             <li>レスポンス構造の変更点</li>

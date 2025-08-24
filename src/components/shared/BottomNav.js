@@ -2,17 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   const navigation = [
-    { name: 'クエスト', href: '/quest', icon: '🎯' },
-    { name: '学習', href: '/study', icon: '📚' },
-    { name: 'エール', href: '/yell', icon: '📣' },
-    { name: 'ベネフィット', href: '/benefits', icon: '🎁' },
-    { name: '成長記録', href: '/growth', icon: '📈' },
-    { name: 'プロフィール', href: '/profile', icon: '👤' }
+    { name: 'プロフィール', href: '/profile', icon: '/icons/profile.png' },
+    { name: '学習', href: '/study', icon: '/icons/study.png' },
+    { name: 'クエスト', href: '/quest', icon: '/icons/quest.png' },
+    { name: '応援', href: '/yell', icon: '/icons/yell.png' },
+    { name: '成長', href: '/growth', icon: '/icons/growth.png' },
+    { name: '特典', href: '/benefits', icon: '/icons/benefit.png' }
   ];
 
   const isActiveLink = (href) => {
@@ -20,23 +21,28 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black z-40 shadow-lg">
       <div className="grid grid-cols-6 h-16 safe-area-pb">
         {navigation.map((item) => (
           <Link
             key={item.name}
             href={item.href}
-            className={`flex flex-col items-center justify-center text-xs font-medium transition-all duration-200 ${
+            className={`flex flex-col items-center justify-center text-[8px] font-medium transition-all duration-200 ${
               isActiveLink(item.href)
-                ? 'text-blue-600 bg-blue-50 transform scale-105'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            <span className={`mb-1 transition-all duration-200 ${
-              isActiveLink(item.href) ? 'text-xl' : 'text-lg'
+            <div className={`mb-1 transition-all duration-200 ${
+              isActiveLink(item.href) ? 'opacity-100' : 'opacity-70'
             }`}>
-              {item.icon}
-            </span>
+              <Image
+                src={item.icon}
+                alt={item.name}
+                width={24}
+                height={24}
+              />
+            </div>
             <span className="leading-tight">{item.name}</span>
           </Link>
         ))}
