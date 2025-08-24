@@ -41,6 +41,11 @@ export default function BottomNav() {
                 alt={item.name}
                 width={24}
                 height={24}
+                className={`transition-all duration-200 ${
+                  isActiveLink(item.href)
+                    ? 'brightness-0 saturate-100 invert'
+                    : 'brightness-50 saturate-50'
+                }`}
               />
             </div>
             <span className="leading-tight">{item.name}</span>
