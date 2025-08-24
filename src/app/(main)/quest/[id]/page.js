@@ -179,9 +179,9 @@ export default function QuestDetailPage() {
   const statusDisplay = getStatusDisplay(quest.status);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div>
       {/* モバイル・タブレット対応のポップアップ風レイアウト */}
-      <div className="max-w-md mx-auto md:max-w-2xl lg:max-w-4xl bg-white border border-black rounded-lg overflow-hidden shadow-lg">
+      <div className="w-full bg-white border border-black overflow-hidden shadow-lg">
         {/* ヘッダーバー */}
         <div className="bg-[#CCCCCC] h-6 flex items-center justify-end px-4">
           <button 
@@ -194,7 +194,7 @@ export default function QuestDetailPage() {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4">
           {/* クエスト画像とメイン情報 */}
           <div className="flex flex-col md:flex-row gap-6 mb-6">
             {/* クエスト画像 */}
