@@ -162,14 +162,14 @@ export default function StudyPage() {
   return (
     <div className="relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute top-20 right-0 w-40 h-40 bg-green-300 rounded-full blur-3xl opacity-40" />
-      <div className="absolute top-40 -left-20 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-40" />
-      <div className="absolute top-0 left-1/3 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-40" />
-      <div className="absolute bottom-40 left-1/3 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-40" />
-      <div className="absolute bottom-0 -left-20 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-40" />
+      <div className="absolute top-20 right-0 w-40 h-40 bg-green-300 rounded-full blur-3xl opacity-40 z-[-1]" />
+      <div className="absolute top-40 -left-20 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-40 z-[-1]" />
+      <div className="absolute top-0 left-1/3 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-40 z-[-1]" />
+      <div className="absolute bottom-40 left-1/3 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-40 z-[-1]" />
+      <div className="absolute bottom-0 -left-20 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-40 z-[-1]" />
 
       {/* Progress Section */}
-      <div className="px-4 py-6">
+      <div className="relative z-10 px-4 py-6">
         <div className="bg-white border border-black rounded-lg px-6 pt-4 pb-6 mb-6 shadow-lg">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-xs font-bold text-black">次のゴールまであと{mockProgress.progressPercentage}%</h2>
@@ -206,24 +206,28 @@ export default function StudyPage() {
       </div>
 
       {/* まもなく解放セクション */}
-      <div className="px-4 mb-6">
+      <div className="relative z-10 px-4 mb-6">
         <h2 className="text-sm font-bold text-black mb-4">まもなく解放</h2>
         <div className="flex gap-4 overflow-x-auto">
           {mockSoonToUnlock.map((item) => (
-            <div key={item.id} className="min-w-[240px] bg-white rounded-lg shadow p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Image src="/icons/lock.svg" alt="locked" width={12} height={12} />
-                <span className="text-xs text-gray-600">マッチ度</span>
-                <span className="text-xs font-bold text-black">{item.matchRate}</span>
+            <div key={item.id} className="min-w-[280px] bg-white rounded-lg shadow-md p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Image src="/icons/lock.svg" alt="locked" width={16} height={16} />
+                  <h3 className="text-xs font-bold text-black">{item.title}</h3>
+                </div>
+                <div className="flex flex-col items-end text-xs">
+                  <span className="text-gray-600 text-[10px]">マッチ度</span>
+                  <span className="font-bold text-black">{item.matchRate}</span>
+                </div>
               </div>
-              <h3 className="text-sm font-bold text-black">{item.title}</h3>
             </div>
           ))}
         </div>
       </div>
 
       {/* 進行中の学習セクション */}
-      <div className="px-4 mb-6">
+      <div className="relative z-10 px-4 mb-6">
         <h2 className="text-sm font-bold text-black mb-4">進行中の学習</h2>
         <div className="flex gap-4 overflow-x-auto">
           {mockInProgress.map((content) => (
@@ -246,7 +250,7 @@ export default function StudyPage() {
       </div>
 
       {/* 推奨学習コンテンツセクション */}
-      <div className="px-4 mb-6">
+      <div className="relative z-10 px-4 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-black">推奨学習コンテンツ</h2>
           <button className="text-sm font-bold text-gray-600 underline">
