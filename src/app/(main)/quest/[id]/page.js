@@ -305,7 +305,7 @@ export default function QuestDetailPage() {
               <div className="space-y-1">
                 {quest.benefits.map((benefit, index) => (
                   <div key={index} className="text-sm text-black">
-                    {benefit.benefit_name || benefit.name || benefit}
+                    {benefit.benefit_name || benefit.name || (typeof benefit === 'string' ? benefit : '')}
                     {benefit.benefit_type === 'recommendation' && ' （昨年実績：参加者の80%が推薦獲得）'}
                   </div>
                 ))}
@@ -391,7 +391,7 @@ export default function QuestDetailPage() {
               {quest.objectives.map((objective, index) => (
                 <li key={index} className="flex items-start">
                   <span className="text-blue-600 mr-2">•</span>
-                  <span className="text-gray-700">{objective}</span>
+                  <span className="text-gray-700">{objective.benefit_name || objective.name || (typeof objective === 'string' ? objective : '')}</span>
                 </li>
               ))}
             </ul>
@@ -478,7 +478,7 @@ export default function QuestDetailPage() {
               {quest.benefits.map((benefit, index) => (
                 <li key={index} className="flex items-start">
                   <span className="text-green-600 mr-2">✓</span>
-                  <span className="text-gray-700 text-sm">{benefit}</span>
+                  <span className="text-gray-700 text-sm">{benefit.benefit_name || benefit.name || (typeof benefit === 'string' ? benefit : '')}</span>
                 </li>
               ))}
             </ul>
