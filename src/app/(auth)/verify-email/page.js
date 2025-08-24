@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import TopNavigation from '@/components/shared/TopNavigation';
 import { useUserStore } from '@/store/userStore';
 import { useUIStore } from '@/store/uiStore';
 import { authAPI } from '@/lib/auth';
@@ -80,8 +79,6 @@ function VerifyEmailContent() {
     <div className="min-h-screen bg-white">
       {/* Mobile Container - 393px width on mobile, responsive on larger screens */}
       <div className="max-w-[393px] sm:max-w-md md:max-w-lg mx-auto bg-white min-h-screen relative">
-        {/* Top Navigation */}
-        <TopNavigation />
         
         {/* Main Content */}
         <div className="px-5 sm:px-6 pt-10">

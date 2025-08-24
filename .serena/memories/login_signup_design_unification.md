@@ -6,7 +6,6 @@ LoginページとSignupページのデザインフォーマットを統一し、
 ## 実装内容
 
 ### 共通コンポーネントの活用
-- **TopNavigation**: ヘッダー部分の統一
 - **SocialButton**: Apple/Googleソーシャルログインボタンの統一
 - **UnderlineInput**: 入力フィールドの統一（アンダーラインスタイル）
 
@@ -38,7 +37,6 @@ className="bg-[#E5E5E5] text-white cursor-not-allowed"
 - `src/app/(auth)/signup/page.js`
 
 ### 使用される共通コンポーネント
-- `src/components/shared/TopNavigation.js`
 - `src/components/ui/SocialButton.js` 
 - `src/components/ui/UnderlineInput.js`
 

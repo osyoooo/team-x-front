@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import TopNavigation from '@/components/shared/TopNavigation';
 import SocialButton from '@/components/ui/SocialButton';
 import UnderlineInput from '@/components/ui/UnderlineInput';
 import { useUserStore } from '@/store/userStore';
@@ -205,9 +204,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white">
       {/* Mobile Container - 393px width on mobile, responsive on larger screens */}
       <div className="max-w-[393px] sm:max-w-md md:max-w-lg mx-auto bg-white min-h-screen relative">
-        {/* Top Navigation */}
-        <TopNavigation />
-
         
         {/* Main Content */}
         <div className="px-5 sm:px-6 pt-10">
