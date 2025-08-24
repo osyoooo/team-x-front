@@ -170,34 +170,37 @@ export default function StudyPage() {
 
       {/* Progress Section */}
       <div className="px-4 py-6">
-        <div className="bg-white border border-black rounded-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-black">次のゴールまであと{100 - mockProgress.progressPercentage}%</h2>
+        <div className="bg-white border border-black rounded-lg px-6 pt-4 pb-6 mb-6 shadow-lg">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xs font-bold text-black">次のゴールまであと{mockProgress.progressPercentage}%</h2>
             <Image
               src="/icons/arrow-right.svg"
               alt="expand"
               width={24}
-              height={24}
-              className="text-black"
+              height={12}
+              className="rotate-90"
             />
           </div>
           
-          <div className="relative mb-4">
-            <div className="w-full h-6 bg-gray-300 rounded-full overflow-hidden">
+          <div className="relative mb-2">
+            <div className="w-full h-[22px] bg-[#D9D9D9] rounded-full overflow-hidden shadow-inner">
               <div 
-                className="h-full bg-gradient-to-r from-green-400 to-blue-400 transition-all duration-300"
-                style={{ width: `${mockProgress.progressPercentage}%` }}
+                className="h-full bg-gradient-to-r from-[#74FBFC] to-[#AEEE31] rounded-full relative top-1 left-1"
+                style={{ width: `calc(${mockProgress.progressPercentage}% - 8px)`, height: '14px' }}
               />
             </div>
           </div>
           
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600">50</span>
-            <div className="text-center">
+          <div className="flex justify-between items-start">
+            <span className="text-sm font-bold text-[#9D9C9C]">50</span>
+            <div className="text-center -mt-1">
               <div className="text-2xl font-bold text-black">{mockProgress.currentPoints}</div>
-              <div className="text-xs text-gray-600">残り <span className="text-black font-bold">点</span></div>
+              <div className="flex items-center gap-1 text-[8px] text-[#575757]">
+                <span>残り</span>
+                <span className="ml-12">点</span>
+              </div>
             </div>
-            <span className="text-gray-600">150</span>
+            <span className="text-sm font-bold text-[#9D9C9C]">150</span>
           </div>
         </div>
       </div>
