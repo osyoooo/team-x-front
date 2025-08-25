@@ -1,5 +1,9 @@
 import { apiClient } from './api';
 
+// Hydrationエラー回避のためのID生成
+let skillIdCounter = 0;
+const generateSkillId = () => `skill_${++skillIdCounter}_${Math.random().toString(36).substr(2, 9)}`;
+
 // モックデータ
 const mockUserProfile = {
   id: '1',
@@ -110,7 +114,7 @@ export const profileAPI = {
         success: true,
         message: 'スキルを追加しました',
         data: {
-          id: Date.now().toString(),
+          id: generateSkillId(),
           ...skillData,
           addedAt: new Date()
         }

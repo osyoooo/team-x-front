@@ -15,6 +15,7 @@ export default function YellPage() {
   
   const [yells, setYells] = useState([]);
   const [newYell, setNewYell] = useState('');
+  const [yellIdCounter, setYellIdCounter] = useState(0);
 
   // 認証チェック
   useEffect(() => {
@@ -59,13 +60,15 @@ export default function YellPage() {
     if (!newYell.trim()) return;
 
     const yell = {
-      id: Date.now().toString(),
+      id: `yell_${yellIdCounter}`,
       from: { name: user?.nickname || 'あなた', avatar: '👤' },
       to: { name: 'コミュニティ', avatar: '🌟' },
       message: newYell,
       timestamp: new Date().toISOString(),
       reactions: []
     };
+    
+    setYellIdCounter(prev => prev + 1);
 
     setYells(prev => [yell, ...prev]);
     setNewYell('');

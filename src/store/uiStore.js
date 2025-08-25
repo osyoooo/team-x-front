@@ -1,5 +1,11 @@
 import { create } from 'zustand';
 
+// Hydrationエラー回避のための安定したID生成
+let notificationIdCounter = 0;
+const generateStableId = () => {
+  return `notification_${++notificationIdCounter}_${typeof window !== 'undefined' ? performance.now() : Math.random()}`;
+};
+
 export const useUIStore = create((set, get) => ({
   // モーダル状態
   modals: {
@@ -51,7 +57,7 @@ export const useUIStore = create((set, get) => ({
   },
   
   addNotification: (notification) => {
-    const id = Date.now().toString();
+    const id = generateStableId();
     set((state) => ({
       notifications: [
         ...state.notifications,

@@ -16,6 +16,24 @@ export default function LearningContentDetailPage() {
   const { setLoading, addNotification } = useUIStore();
   
   const [content, setContent] = useState(null);
+  
+  // Hydrationエラー回避のためのクライアント専用の評価数生成
+  const [reviewCount, setReviewCount] = useState(null);
+  
+  useEffect(() => {
+    // contentIdベースで決定的な評価数を生成
+    if (params.contentId) {
+      let hash = 0;
+      const idString = params.contentId.toString();
+      for (let i = 0; i < idString.length; i++) {
+        const char = idString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      const count = Math.abs(hash) % 100 + 50;
+      setReviewCount(count);
+    }
+  }, [params.contentId]);
 
   // 認証チェック
   useEffect(() => {
@@ -288,7 +306,7 @@ export default function LearningContentDetailPage() {
                 {content.instructor?.bio || '経験豊富な講師'}
               </div>
               <div className="text-sm text-gray-500">
-                ⭐ {content.rating || '4.5'} • 評価数 {Math.floor(Math.random() * 100) + 50}件
+                ⭐ {content.rating || '4.5'} • 評価数 {reviewCount || '...'}件
               </div>
             </div>
           </div>

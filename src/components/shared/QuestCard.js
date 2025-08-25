@@ -13,17 +13,29 @@ const questImages = [
   '/quest/れぽ-removebg-preview.png'
 ];
 
-// ランダムな画像を選択する関数
-const getRandomQuestImage = () => {
-  const randomIndex = Math.floor(Math.random() * questImages.length);
-  return questImages[randomIndex];
+// quest.idベースで決定的に画像を選択する関数（Hydrationエラー回避）
+const getQuestImageById = (questId) => {
+  if (!questId) return questImages[0];
+  
+  // quest.idから安定したハッシュ値を生成
+  let hash = 0;
+  const idString = questId.toString();
+  for (let i = 0; i < idString.length; i++) {
+    const char = idString.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // 32bit整数に変換
+  }
+  
+  // 配列のインデックスに変換
+  const index = Math.abs(hash) % questImages.length;
+  return questImages[index];
 };
 
 export default function QuestCard({ quest, onJoin, onViewDetails, isUpcoming = false }) {
   const isLocked = quest.isLocked || isUpcoming;
   
-  // 画像ソースの決定：quest.iconが有効でない場合はランダム画像を使用
-  const imageSource = quest.icon && quest.icon.trim() ? quest.icon : getRandomQuestImage();
+  // 画像ソースの決定：quest.iconが有効でない場合はquest.idベースで決定的に画像を選択
+  const imageSource = quest.icon && quest.icon.trim() ? quest.icon : getQuestImageById(quest.id);
 
   const CardContent = (
     <div className={`relative bg-white border border-black rounded-lg overflow-hidden w-full max-w-sm md:max-w-md lg:max-w-lg ${isLocked ? 'opacity-60 pointer-events-none' : 'hover:shadow-lg transition-shadow duration-200'} h-full flex flex-col`} style={{minHeight: '172px'}}>

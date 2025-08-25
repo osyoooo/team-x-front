@@ -1,3 +1,15 @@
-// git add next.config.js
-// git commit -m "Fix: Add next.config.js to resolve Route Groups build error"
-// git push origin main
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'storage.cloud.google.com',
+        port: '',
+        pathname: '/teamx_mvp/**',
+      },
+    ],
+  },
+};
+
+module.exports = nextConfig;
