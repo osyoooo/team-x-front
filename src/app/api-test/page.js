@@ -106,30 +106,111 @@ export default function ApiTestPage() {
       const decodedHeader = JSON.parse(atob(header));
       const decodedPayload = JSON.parse(atob(payload));
 
+      // 有効期限までの残り時間を計算
+      const now = Math.floor(Date.now() / 1000);
+      const expiresIn = decodedPayload.exp ? decodedPayload.exp - now : null;
+      const isExpired = expiresIn !== null && expiresIn <= 0;
+      
+      // 残り時間を人間が読みやすい形式に変換
+      const formatTimeRemaining = (seconds) => {
+        if (seconds <= 0) return '期限切れ';
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        if (hours > 0) {
+          return `${hours}時間${minutes}分${secs}秒`;
+        } else if (minutes > 0) {
+          return `${minutes}分${secs}秒`;
+        } else {
+          return `${secs}秒`;
+        }
+      };
+
+      // 日本時間でのフォーマット
+      const formatJapanTime = (timestamp) => {
+        if (!timestamp) return null;
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleString('ja-JP', { 
+          timeZone: 'Asia/Tokyo',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+      };
+
       setResponses(prev => ({
         ...prev,
         jwtDecode: {
           success: true,
           data: {
-            header: decodedHeader,
-            payload: decodedPayload,
-            signature: signature,
-            token_parts: {
-              header_length: header.length,
-              payload_length: payload.length,
-              signature_length: signature.length
+            // ヘッダー情報
+            header: {
+              algorithm: decodedHeader.alg,
+              type: decodedHeader.typ,
+              raw: decodedHeader
             },
-            decoded_info: {
-              expires_at: decodedPayload.exp ? new Date(decodedPayload.exp * 1000).toISOString() : null,
-              issued_at: decodedPayload.iat ? new Date(decodedPayload.iat * 1000).toISOString() : null,
+            
+            // ペイロード詳細情報
+            payload: {
+              // 基本認証情報
+              user_id: decodedPayload.sub,
+              email: decodedPayload.email,
+              email_verified: decodedPayload.email_verified,
+              phone: decodedPayload.phone,
+              phone_verified: decodedPayload.phone_verified,
+              
+              // セッション情報
+              session_id: decodedPayload.session_id,
+              role: decodedPayload.role,
+              aal: decodedPayload.aal, // Authentication Assurance Level
+              amr: decodedPayload.amr, // Authentication Method Reference
+              
+              // メタデータ
+              user_metadata: decodedPayload.user_metadata,
+              app_metadata: decodedPayload.app_metadata,
+              
+              // 時刻情報（日本時間）
+              issued_at: formatJapanTime(decodedPayload.iat),
+              expires_at: formatJapanTime(decodedPayload.exp),
+              not_before: formatJapanTime(decodedPayload.nbf),
+              
+              // 時刻情報（UNIXタイムスタンプ）
+              issued_at_unix: decodedPayload.iat,
+              expires_at_unix: decodedPayload.exp,
+              not_before_unix: decodedPayload.nbf,
+              
+              // 有効期限情報
+              is_expired: isExpired,
+              expires_in_seconds: expiresIn,
+              time_remaining: formatTimeRemaining(expiresIn || 0),
+              
+              // その他の情報
               issuer: decodedPayload.iss,
               audience: decodedPayload.aud,
-              subject: decodedPayload.sub,
-              role: decodedPayload.role,
-              session_id: decodedPayload.session_id,
+              
+              // 生のペイロード（全フィールド）
+              raw: decodedPayload
+            },
+            
+            // 署名情報
+            signature: {
+              value: signature.substring(0, 20) + '...',
+              length: signature.length
+            },
+            
+            // トークン構造情報
+            token_structure: {
+              total_length: token.length,
+              header_length: header.length,
+              payload_length: payload.length,
+              signature_length: signature.length,
+              parts_count: token.split('.').length
             }
           },
-          timestamp: new Date().toLocaleTimeString()
+          timestamp: new Date().toLocaleTimeString('ja-JP')
         }
       }));
 
@@ -140,7 +221,7 @@ export default function ApiTestPage() {
         jwtDecode: {
           success: false,
           error: 'JWTトークンのデコードに失敗しました: ' + err.message,
-          timestamp: new Date().toLocaleTimeString()
+          timestamp: new Date().toLocaleTimeString('ja-JP')
         }
       }));
     }
@@ -149,6 +230,158 @@ export default function ApiTestPage() {
   const formatResponse = (response) => {
     if (!response) return null;
     
+    // JWT デコードレスポンス用の特別なフォーマット
+    if (response.success && response.data?.header && response.data?.payload) {
+      const data = response.data;
+      const payload = data.payload;
+      
+      return (
+        <div className="mt-4 space-y-4">
+          {/* ステータスヘッダー */}
+          <div className="flex justify-between items-center p-3 bg-green-100 rounded-lg">
+            <span className="font-semibold text-green-800">✅ デコード成功</span>
+            <span className="text-sm text-gray-600">{response.timestamp}</span>
+          </div>
+
+          {/* 有効期限情報 */}
+          <div className={`p-4 rounded-lg ${payload.is_expired ? 'bg-red-100 border-red-300' : 'bg-green-50 border-green-300'} border`}>
+            <h4 className="font-semibold mb-2 text-gray-800">📅 有効期限情報</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-gray-600">ステータス:</span>
+                <span className={`ml-2 font-medium ${payload.is_expired ? 'text-red-600' : 'text-green-600'}`}>
+                  {payload.is_expired ? '❌ 期限切れ' : '✅ 有効'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">残り時間:</span>
+                <span className={`ml-2 font-medium ${payload.is_expired ? 'text-red-600' : 'text-blue-600'}`}>
+                  {payload.time_remaining}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">発行日時:</span>
+                <span className="ml-2">{payload.issued_at || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">有効期限:</span>
+                <span className="ml-2">{payload.expires_at || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ユーザー情報 */}
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-semibold mb-2 text-gray-800">👤 ユーザー情報</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-gray-600">ユーザーID:</span>
+                <span className="ml-2 font-mono text-xs bg-white px-2 py-1 rounded">
+                  {payload.user_id || 'N/A'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">メール:</span>
+                <span className="ml-2">{payload.email || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">メール認証:</span>
+                <span className="ml-2">
+                  {payload.email_verified ? '✅ 認証済み' : '❌ 未認証'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">ロール:</span>
+                <span className="ml-2 bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
+                  {payload.role || 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* セッション情報 */}
+          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <h4 className="font-semibold mb-2 text-gray-800">🔐 セッション情報</h4>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="text-gray-600">セッションID:</span>
+                <span className="ml-2 font-mono text-xs bg-white px-2 py-1 rounded">
+                  {payload.session_id || 'N/A'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">認証レベル (AAL):</span>
+                <span className="ml-2">{payload.aal || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">認証方法 (AMR):</span>
+                <span className="ml-2">
+                  {Array.isArray(payload.amr) ? payload.amr.join(', ') : payload.amr || 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* トークン構造 */}
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h4 className="font-semibold mb-2 text-gray-800">📊 トークン構造</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div>
+                <span className="text-gray-600 block">全体:</span>
+                <span className="font-mono text-xs">{data.token_structure.total_length} 文字</span>
+              </div>
+              <div>
+                <span className="text-gray-600 block">ヘッダー:</span>
+                <span className="font-mono text-xs">{data.token_structure.header_length} 文字</span>
+              </div>
+              <div>
+                <span className="text-gray-600 block">ペイロード:</span>
+                <span className="font-mono text-xs">{data.token_structure.payload_length} 文字</span>
+              </div>
+              <div>
+                <span className="text-gray-600 block">署名:</span>
+                <span className="font-mono text-xs">{data.token_structure.signature_length} 文字</span>
+              </div>
+            </div>
+          </div>
+
+          {/* メタデータ（存在する場合） */}
+          {(payload.user_metadata || payload.app_metadata) && (
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <h4 className="font-semibold mb-2 text-gray-800">📝 メタデータ</h4>
+              {payload.user_metadata && (
+                <div className="mb-2">
+                  <span className="text-sm text-gray-600">ユーザーメタデータ:</span>
+                  <pre className="mt-1 p-2 bg-white rounded text-xs overflow-x-auto">
+                    {JSON.stringify(payload.user_metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {payload.app_metadata && (
+                <div>
+                  <span className="text-sm text-gray-600">アプリメタデータ:</span>
+                  <pre className="mt-1 p-2 bg-white rounded text-xs overflow-x-auto">
+                    {JSON.stringify(payload.app_metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 生データ（折りたたみ可能） */}
+          <details className="p-4 bg-gray-100 rounded-lg">
+            <summary className="cursor-pointer font-semibold text-gray-700 hover:text-gray-900">
+              🔍 生データを表示（クリックで展開）
+            </summary>
+            <pre className="mt-3 p-3 bg-white rounded text-xs overflow-x-auto">
+              {JSON.stringify(data, null, 2)}
+            </pre>
+          </details>
+        </div>
+      );
+    }
+    
+    // デフォルトのフォーマット（通常のAPIレスポンス用）
     return (
       <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
         <div className="flex justify-between items-center mb-2">
