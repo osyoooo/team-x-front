@@ -1,4 +1,21 @@
-import { apiClient } from './api';
+// プロキシAPI経由でのAPIアクセス用ヘルパー関数
+const proxyFetch = async (endpoint, options = {}) => {
+  const response = await fetch(endpoint, {
+    method: options.method || 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 // Hydrationエラー回避のためのID生成
 let skillIdCounter = 0;
@@ -73,9 +90,10 @@ export const profileAPI = {
   // プロフィール取得
   async getProfile(userId = 'me') {
     try {
-      const response = await apiClient.get(`/profile/${userId}`);
+      const response = await proxyFetch('/api/proxy/profile');
       return response;
     } catch (error) {
+      console.warn('プロキシAPI経由でのプロフィール取得に失敗、モックデータを使用:', error);
       // デモ用のモックレスポンス
       return {
         success: true,
@@ -87,9 +105,13 @@ export const profileAPI = {
   // プロフィール更新
   async updateProfile(profileData) {
     try {
-      const response = await apiClient.put('/profile', profileData);
+      const response = await proxyFetch('/api/proxy/profile', {
+        method: 'PUT',
+        body: JSON.stringify(profileData),
+      });
       return response;
     } catch (error) {
+      console.warn('プロキシAPI経由でのプロフィール更新に失敗、モックデータを使用:', error);
       // デモ用のモックレスポンス
       return {
         success: true,
@@ -169,9 +191,10 @@ export const profileAPI = {
   // 統計情報取得
   async getStats(period = 'month') {
     try {
-      const response = await apiClient.get('/profile/stats', { period });
+      const response = await proxyFetch(`/api/proxy/profile?action=stats&period=${period}`);
       return response;
     } catch (error) {
+      console.warn('プロキシAPI経由での統計情報取得に失敗、モックデータを使用:', error);
       // デモ用のモックレスポンス
       const mockStats = {
         month: {
@@ -204,9 +227,10 @@ export const profileAPI = {
   // アチーブメント取得
   async getAchievements() {
     try {
-      const response = await apiClient.get('/profile/achievements');
+      const response = await proxyFetch('/api/proxy/profile?action=achievements');
       return response;
     } catch (error) {
+      console.warn('プロキシAPI経由でのアチーブメント取得に失敗、モックデータを使用:', error);
       // デモ用のモックレスポンス
       return {
         success: true,

@@ -24,6 +24,9 @@ export default function ApiTestPage() {
     
     try {
       let result;
+      const fullURL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}${endpoint}`;
+      
+      console.log(`🔍 [API Test] Starting ${method} request to: ${fullURL}`);
       
       if (method === 'GET') {
         result = await apiClient.get(endpoint);
@@ -31,21 +34,49 @@ export default function ApiTestPage() {
         result = await apiClient.post(endpoint, data);
       }
       
+      console.log(`✅ [API Test] Success:`, result);
+      
       setResponses(prev => ({
         ...prev,
         [key]: {
           success: true,
           data: result,
-          timestamp: new Date().toLocaleTimeString()
+          timestamp: new Date().toLocaleTimeString(),
+          url: fullURL,
+          method: method
         }
       }));
     } catch (err) {
-      setError(err.message);
+      const fullURL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}${endpoint}`;
+      
+      console.error(`❌ [API Test] Error:`, {
+        message: err.message,
+        url: fullURL,
+        method: method,
+        error: err
+      });
+      
+      // より詳細なエラー情報を収集
+      const errorDetails = {
+        message: err.message,
+        name: err.name,
+        url: fullURL,
+        method: method,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        // CORS特有の問題を検出
+        isCORSError: err.message.includes('Failed to fetch') || err.message.includes('CORS'),
+        // ネットワークエラーかどうかを判定
+        isNetworkError: err.message.includes('Failed to fetch') || err.message.includes('NetworkError')
+      };
+      
+      setError(`${err.message} (詳細はConsoleを確認してください)`);
       setResponses(prev => ({
         ...prev,
         [key]: {
           success: false,
           error: err.message,
+          errorDetails: errorDetails,
           timestamp: new Date().toLocaleTimeString()
         }
       }));
@@ -96,6 +127,182 @@ export default function ApiTestPage() {
       }));
     } finally {
       setJwtLoading(false);
+    }
+  };
+
+  // 直接fetchテスト（CORS問題診断用）
+  const testDirectFetch = async (endpoint, method = 'GET', data = null, key) => {
+    setLoading(true);
+    setError('');
+    
+    const fullURL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}${endpoint}`;
+    
+    try {
+      console.log(`🔍 [Direct Fetch] Starting ${method} request to: ${fullURL}`);
+      console.log(`🔍 [Direct Fetch] CORS診断モード - APIクライアントをバイパス`);
+      
+      const config = {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      };
+      
+      if (data && method !== 'GET') {
+        config.body = JSON.stringify(data);
+      }
+      
+      // 認証ヘッダーは意図的に追加しない（CORS問題を分離するため）
+      console.log(`🔍 [Direct Fetch] Request config:`, config);
+      
+      const response = await fetch(fullURL, config);
+      
+      console.log(`🔍 [Direct Fetch] Response status: ${response.status}`);
+      console.log(`🔍 [Direct Fetch] Response headers:`, [...response.headers.entries()]);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log(`✅ [Direct Fetch] Success:`, result);
+      
+      setResponses(prev => ({
+        ...prev,
+        [`${key}_direct`]: {
+          success: true,
+          data: result,
+          timestamp: new Date().toLocaleTimeString(),
+          url: fullURL,
+          method: method,
+          note: "🔥 直接fetch成功！CORS問題は解決済み"
+        }
+      }));
+      
+    } catch (err) {
+      console.error(`❌ [Direct Fetch] Error:`, {
+        message: err.message,
+        url: fullURL,
+        method: method,
+        error: err
+      });
+      
+      const errorDetails = {
+        message: err.message,
+        name: err.name,
+        url: fullURL,
+        method: method,
+        timestamp: new Date().toISOString(),
+        isCORSError: err.message.includes('Failed to fetch') || err.message.includes('CORS'),
+        isHTTPError: err.message.includes('HTTP'),
+        diagnosis: err.message.includes('Failed to fetch') 
+          ? "🚨 CORS問題: ブラウザがリクエストをブロックしています" 
+          : err.message.includes('HTTP')
+          ? "🔴 サーバーエラー: APIサーバーがエラーレスポンスを返しています"
+          : "⚠️ その他のネットワークエラー"
+      };
+      
+      setError(`Direct Fetch: ${err.message}`);
+      setResponses(prev => ({
+        ...prev,
+        [`${key}_direct`]: {
+          success: false,
+          error: err.message,
+          errorDetails: errorDetails,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // プロキシ経由テスト（CORS回避）
+  const testProxyAPI = async (proxyPath, method = 'GET', data = null, key) => {
+    setLoading(true);
+    setError('');
+    
+    const proxyURL = `/api/proxy/${proxyPath}`;
+    
+    try {
+      console.log(`🔄 [Proxy Test] Starting ${method} request to: ${proxyURL}`);
+      console.log(`🔄 [Proxy Test] CORS回避モード - Next.js API Routes経由`);
+      
+      const config = {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      };
+      
+      // JWTトークンがある場合は追加
+      if (typeof window !== 'undefined') {
+        const userStore = JSON.parse(localStorage.getItem('user-storage') || '{}');
+        if (userStore.state?.token) {
+          config.headers.Authorization = `Bearer ${userStore.state.token}`;
+        }
+      }
+      
+      if (data && method !== 'GET') {
+        config.body = JSON.stringify(data);
+      }
+      
+      console.log(`🔄 [Proxy Test] Request config:`, config);
+      
+      const response = await fetch(proxyURL, config);
+      
+      console.log(`🔄 [Proxy Test] Response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log(`✅ [Proxy Test] Success:`, result);
+      
+      setResponses(prev => ({
+        ...prev,
+        [`${key}_proxy`]: {
+          success: true,
+          data: result,
+          timestamp: new Date().toLocaleTimeString(),
+          url: proxyURL,
+          method: method,
+          note: "🔄 Next.js プロキシ経由で成功！CORS問題を回避"
+        }
+      }));
+      
+    } catch (err) {
+      console.error(`❌ [Proxy Test] Error:`, {
+        message: err.message,
+        url: proxyURL,
+        method: method,
+        error: err
+      });
+      
+      const errorDetails = {
+        message: err.message,
+        name: err.name,
+        url: proxyURL,
+        method: method,
+        timestamp: new Date().toISOString(),
+        isProxyError: true,
+        diagnosis: "🔄 プロキシ経由でもエラー - APIサーバーまたはネットワークの問題"
+      };
+      
+      setError(`Proxy Test: ${err.message}`);
+      setResponses(prev => ({
+        ...prev,
+        [`${key}_proxy`]: {
+          success: false,
+          error: err.message,
+          errorDetails: errorDetails,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1089,6 +1296,18 @@ export default function ApiTestPage() {
         <div className="bg-red-50 p-4 rounded-lg mb-6">
           <h2 className="text-2xl font-bold text-red-800 mb-2">Profile API</h2>
           <p className="text-sm text-red-700">ユーザープロフィール、スキルスコア、進捗状況、ランキング情報の取得</p>
+          
+          {/* CORS診断ガイド */}
+          <div className="mt-4 p-3 bg-white rounded border border-red-200">
+            <h4 className="font-semibold text-red-800 mb-2">🚨 CORS問題診断ガイド</h4>
+            <div className="text-xs text-red-700 space-y-1">
+              <p><strong>1. 「Failed to fetch」エラー</strong> → CORS問題の可能性が高い</p>
+              <p><strong>2. Direct Fetch Test</strong> → APIクライアントをバイパスして直接テスト</p>
+              <p><strong>3. Proxy Test</strong> → Next.js API Routes経由でCORS問題を回避</p>
+              <p><strong>4. Console確認</strong> → F12開発者ツールで詳細なエラーログを確認</p>
+              <p><strong>5. Network Tab</strong> → リクエスト/レスポンスヘッダーとステータスコードを確認</p>
+            </div>
+          </div>
         </div>
 
         {/* User Profile */}
@@ -1097,15 +1316,45 @@ export default function ApiTestPage() {
           <p className="text-sm text-gray-600 mb-2">GET /api/v1/profile</p>
           <p className="text-xs text-red-600 mb-4">✓ ユーザー基本情報、スキルスコア、スタッフ進捗、ランキングを一括取得</p>
           
-          <button
-            onClick={() => testAPI('/api/v1/profile', 'GET', null, 'userProfile')}
-            disabled={loading}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
-          >
-            {loading ? 'Testing...' : 'Test Profile API'}
-          </button>
+          <div className="flex flex-wrap gap-3 mb-4">
+            <button
+              onClick={() => testAPI('/api/v1/profile', 'GET', null, 'userProfile')}
+              disabled={loading}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+            >
+              {loading ? 'Testing...' : 'Test Profile API'}
+            </button>
+            
+            <button
+              onClick={() => testDirectFetch('/api/v1/profile', 'GET', null, 'userProfile')}
+              disabled={loading}
+              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
+            >
+              {loading ? 'Testing...' : '🔥 Direct Fetch Test'}
+            </button>
+            
+            <button
+              onClick={() => testProxyAPI('profile', 'GET', null, 'userProfile')}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            >
+              {loading ? 'Testing...' : '🔄 Proxy Test'}
+            </button>
+          </div>
           
           {formatResponse(responses.userProfile)}
+          {responses.userProfile_direct && (
+            <div className="mt-4">
+              <h4 className="font-semibold text-orange-600 mb-2">🔥 Direct Fetch Result:</h4>
+              {formatResponse(responses.userProfile_direct)}
+            </div>
+          )}
+          {responses.userProfile_proxy && (
+            <div className="mt-4">
+              <h4 className="font-semibold text-blue-600 mb-2">🔄 Proxy Test Result:</h4>
+              {formatResponse(responses.userProfile_proxy)}
+            </div>
+          )}
         </div>
 
         {/* Auth APIs Section */}
