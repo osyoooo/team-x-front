@@ -78,15 +78,15 @@ export default function YellProjectsPage() {
       <div className="relative z-10 max-w-md mx-auto min-h-screen">
         {/* タブナビゲーション */}
         <div className="pt-6 px-6 pb-4">
-          <div className="bg-gray-200/80 backdrop-blur-sm rounded-full p-0.5 flex relative">
+          <div className="bg-[#CCCCCC] rounded-full px-1 py-1.5 flex relative shadow-[inset_0px_4px_4px_rgba(0,0,0,0.25)] gap-1.5 w-[340px] mx-auto">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2.5 px-4 rounded-full text-sm font-medium transition-all duration-300 relative z-10 ${
+                className={`w-[160px] h-[25px] flex items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 relative z-10 ${
                   activeTab === tab
                     ? 'bg-black text-white shadow-lg'
-                    : 'text-gray-500 bg-transparent'
+                    : 'text-[#9D9C9C] bg-[#E5E5E5]'
                 }`}
               >
                 {tab}
