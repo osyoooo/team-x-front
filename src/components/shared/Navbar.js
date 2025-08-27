@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUserStore } from '@/store/userStore';
 import { useUIStore } from '@/store/uiStore';
@@ -23,12 +24,12 @@ export default function Navbar() {
   };
 
   const navigation = [
-    { name: 'クエスト', href: '/quest', icon: '🎯', title: 'Quest' },
-    { name: '学習', href: '/study', icon: '📚', title: 'Study' },
-    { name: 'エール', href: '/yell', icon: '📣', title: 'Yell' },
-    { name: 'ベネフィット', href: '/benefits', icon: '🎁', title: 'Benefits' },
-    { name: '成長記録', href: '/growth', icon: '📈', title: 'Growth' },
-    { name: 'プロフィール', href: '/profile', icon: '👤', title: 'Profile' }
+    { name: 'クエスト', href: '/quest', icon: '/icons/quest.png', title: 'Quest' },
+    { name: '学習', href: '/study', icon: '/icons/study.png', title: 'Study' },
+    { name: 'エール', href: '/yell', icon: '/icons/yell.png', title: 'Yell' },
+    { name: 'ベネフィット', href: '/benefits', icon: '/icons/benefit.png', title: 'Benefits' },
+    { name: '成長記録', href: '/growth', icon: '/icons/growth.png', title: 'Growth' },
+    { name: 'プロフィール', href: '/profile', icon: '/icons/profile.png', title: 'Profile' }
   ];
 
   const isActiveLink = (href) => {
@@ -86,7 +87,13 @@ export default function Navbar() {
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <span className="mr-3 text-lg">{item.icon}</span>
+                <Image
+                  src={item.icon}
+                  alt={item.name}
+                  width={20}
+                  height={20}
+                  className="mr-3"
+                />
                 {item.name}
               </Link>
             ))}
@@ -112,7 +119,13 @@ export default function Navbar() {
                 className="flex items-center px-3 py-3 mt-2 rounded-lg text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <span className="mr-3">⚙️</span>
+                <Image
+                  src="/icons/profile.svg"
+                  alt="設定"
+                  width={16}
+                  height={16}
+                  className="mr-3"
+                />
                 プロフィール設定
               </Link>
               
@@ -123,7 +136,13 @@ export default function Navbar() {
                 }}
                 className="flex items-center w-full px-3 py-3 mt-1 rounded-lg text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
               >
-                <span className="mr-3">🚪</span>
+                <Image
+                  src="/icons/arrow-right.svg"
+                  alt="ログアウト"
+                  width={16}
+                  height={16}
+                  className="mr-3"
+                />
                 ログアウト
               </button>
             </div>
