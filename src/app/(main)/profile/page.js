@@ -342,16 +342,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Teammates info */}
-        <div className="flex justify-center mb-8">
-          <div className="max-w-80">
-            <ProfileBubble 
-              message={`同じ夢・目標の仲間は${profile?.total_participants || teammates}人！ともに頑張ろう！`} 
-              position="center"
-            />
-          </div>
-        </div>
-
         {/* Progress Steps */}
         <div className="mb-8">
           <h2 className="text-sm font-bold text-black mb-4">未来ステップ 進行状況</h2>
@@ -369,6 +359,16 @@ export default function ProfilePage() {
         <div className="mb-8">
           <h2 className="text-sm font-bold text-black mb-4">同じ夢の仲間の挑戦ランキングTOP3</h2>
           <ChallengeRanking />
+        </div>
+
+        {/* Teammates info (moved to bottom) */}
+        <div className="flex justify-center mb-8">
+          <div className="max-w-80">
+            <ProfileBubble 
+              message={`同じ夢・目標の仲間は${profile?.total_participants || teammates}人！ともに頑張ろう！`} 
+              position="center"
+            />
+          </div>
         </div>
 
         {/* Debug button (if needed) */}
