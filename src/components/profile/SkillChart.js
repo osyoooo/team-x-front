@@ -59,8 +59,8 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
     ];
 
     // 三角形のパスを構築
-    // スキル値の最大値を動的に計算（最低300に設定）
-    const maxSkillValue = Math.max(300, Math.max(...skillData.map(s => s.value)) * 1.2);
+    // 最大値を500に固定してレーダーチャートとして正規化
+    const maxSkillValue = 500;
     
     const trianglePoints = skillData.map(skill => {
       const radius = (skill.value / maxSkillValue) * maxRadius;
@@ -71,10 +71,10 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
       };
     });
 
-    // グレーの三角形（背景）を描画
+    // 最大値（500）のレーダーチャート（背景）を描画
     ctx.beginPath();
     skillData.forEach((skill, index) => {
-      const radius = maxRadius * 0.5; // 背景は50%のサイズ
+      const radius = maxRadius; // 最大値の場合は最大半径
       const x = centerX + Math.cos(skill.angle) * radius;
       const y = centerY + Math.sin(skill.angle) * radius;
       
@@ -85,7 +85,7 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
       }
     });
     ctx.closePath();
-    ctx.fillStyle = 'rgba(204, 204, 204, 0.48)';
+    ctx.fillStyle = 'rgba(204, 204, 204, 0.3)';
     ctx.fill();
 
     // メインの三角形を描画（グラデーション）
