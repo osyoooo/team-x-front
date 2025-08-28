@@ -3,19 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/userStore';
-import { useUIStore } from '@/store/uiStore';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import Input from '@/components/ui/Input';
+import { fetchProjects, normalizeProjectsData } from '@/lib/yellAPI';
+import Link from 'next/link';
 
-export default function YellPage() {
+export default function YellProjectsPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useUserStore();
-  const { addNotification } = useUIStore();
-  
-  const [yells, setYells] = useState([]);
-  const [newYell, setNewYell] = useState('');
-  const [yellIdCounter, setYellIdCounter] = useState(0);
+  const { isAuthenticated } = useUserStore();
+  const [activeTab, setActiveTab] = useState('募集中');
+  const [projectsData, setProjectsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // 認証チェック
   useEffect(() => {
@@ -24,219 +21,188 @@ export default function YellPage() {
     }
   }, [isAuthenticated, router]);
 
-  // モックのエールデータ
+  // プロジェクト一覧を取得
   useEffect(() => {
-    if (isAuthenticated) {
-      setYells([
-        {
-          id: '1',
-          from: { name: '田中さん', avatar: '👨‍💻' },
-          to: { name: 'みらいちゃん', avatar: '👩‍🎓' },
-          message: 'JavaScript学習お疲れ様です！一緒に頑張りましょう！',
-          timestamp: '2024-08-17T09:30:00Z',
-          reactions: ['👏', '🎉', '💪']
-        },
-        {
-          id: '2',
-          from: { name: '佐藤さん', avatar: '👩‍💼' },
-          to: { name: 'みらいちゃん', avatar: '👩‍🎓' },
-          message: 'React入門クエスト参加おめでとう！私も同じクエストやってます。質問があったらいつでも声かけてくださいね😊',
-          timestamp: '2024-08-16T14:20:00Z',
-          reactions: ['😊', '🤝', '📚']
-        },
-        {
-          id: '3',
-          from: { name: '山田さん', avatar: '👨‍🔬' },
-          to: { name: 'コミュニティ', avatar: '🌟' },
-          message: '今日も学習お疲れ様でした！継続は力なり、みんなで頑張りましょう！',
-          timestamp: '2024-08-15T18:00:00Z',
-          reactions: ['🔥', '💪', '🎯']
-        }
-      ]);
-    }
-  }, [isAuthenticated]);
-
-  const handleSendYell = () => {
-    if (!newYell.trim()) return;
-
-    const yell = {
-      id: `yell_${yellIdCounter}`,
-      from: { name: user?.nickname || 'あなた', avatar: '👤' },
-      to: { name: 'コミュニティ', avatar: '🌟' },
-      message: newYell,
-      timestamp: new Date().toISOString(),
-      reactions: []
-    };
-    
-    setYellIdCounter(prev => prev + 1);
-
-    setYells(prev => [yell, ...prev]);
-    setNewYell('');
-    addNotification({
-      type: 'success',
-      message: 'エールを送信しました！'
-    });
-  };
-
-  const handleReaction = (yellId, reaction) => {
-    setYells(prev => prev.map(yell => {
-      if (yell.id === yellId) {
-        const reactions = yell.reactions.includes(reaction)
-          ? yell.reactions.filter(r => r !== reaction)
-          : [...yell.reactions, reaction];
-        return { ...yell, reactions };
+    const loadProjects = async () => {
+      setLoading(true);
+      setError(null);
+      
+      const result = await fetchProjects(activeTab);
+      
+      if (result.success) {
+        const normalizedData = normalizeProjectsData(result.data);
+        setProjectsData(normalizedData);
+      } else {
+        setError(result.error);
       }
-      return yell;
-    }));
-  };
+      
+      setLoading(false);
+    };
 
-  const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffHours < 24) return `${diffHours}時間前`;
-    if (diffDays < 7) return `${diffDays}日前`;
-    return date.toLocaleDateString('ja-JP');
-  };
+    if (isAuthenticated) {
+      loadProjects();
+    }
+  }, [activeTab, isAuthenticated]);
 
   if (!isAuthenticated) {
     return null;
   }
 
+  const tabs = projectsData?.tabs || ['企画中', '募集中', '実行中'];
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      {/* ヘッダー */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">エール</h1>
-        <p className="text-gray-600">
-          仲間と励まし合い、学習のモチベーションを高めよう
-        </p>
-      </div>
-
-      {/* エール投稿フォーム */}
-      <Card className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">📣 エールを送る</h3>
-        <div className="space-y-4">
-          <textarea
-            value={newYell}
-            onChange={(e) => setNewYell(e.target.value)}
-            placeholder="仲間を励ますメッセージを書いてみましょう..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            rows={3}
-            maxLength={200}
-          />
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">
-              {newYell.length}/200文字
-            </span>
-            <Button
-              onClick={handleSendYell}
-              disabled={!newYell.trim()}
-            >
-              エールを送る
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* おすすめのエール例 */}
-      <Card className="mb-8 bg-blue-50">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">💡 エールの例</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-white rounded-lg border border-blue-200">
-            <p className="text-sm text-gray-700">「今日も学習お疲れ様です！一緒に頑張りましょう！」</p>
-          </div>
-          <div className="p-3 bg-white rounded-lg border border-blue-200">
-            <p className="text-sm text-gray-700">「同じクエストを進めている仲間です。お互い頑張りましょう😊」</p>
-          </div>
-          <div className="p-3 bg-white rounded-lg border border-blue-200">
-            <p className="text-sm text-gray-700">「継続は力なり！今日も一歩前進ですね🎯」</p>
-          </div>
-          <div className="p-3 bg-white rounded-lg border border-blue-200">
-            <p className="text-sm text-gray-700">「新しいスキル習得おめでとうございます！🎉」</p>
-          </div>
-        </div>
-      </Card>
-
-      {/* エール一覧 */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">🌟 みんなのエール</h3>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-green-50">
+      {/* カラフルなグラデーション背景ボール */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* エメラルド系 */}
+        <div className="absolute w-48 h-48 bg-emerald-300 rounded-full blur-2xl opacity-50" 
+             style={{ top: '8%', right: '18%' }}></div>
         
-        {yells.length > 0 ? (
-          yells.map((yell) => (
-            <Card key={yell.id}>
-              <div className="flex items-start space-x-3">
-                <div className="text-2xl">{yell.from.avatar}</div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-medium text-gray-900">{yell.from.name}</span>
-                    <span className="text-gray-500">→</span>
-                    <span className="font-medium text-blue-600">{yell.to.name}</span>
-                    <span className="text-sm text-gray-500">{formatTimestamp(yell.timestamp)}</span>
-                  </div>
-                  <p className="text-gray-700 mb-3">{yell.message}</p>
-                  
-                  {/* リアクション */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-500">リアクション:</span>
-                    {['👏', '🎉', '💪', '😊', '🔥'].map((reaction) => (
-                      <button
-                        key={reaction}
-                        onClick={() => handleReaction(yell.id, reaction)}
-                        className={`text-lg hover:scale-110 transition-transform ${
-                          yell.reactions.includes(reaction) ? 'bg-yellow-100 rounded' : ''
-                        }`}
-                      >
-                        {reaction}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {/* 既存のリアクション表示 */}
-                  {yell.reactions.length > 0 && (
-                    <div className="mt-2 flex space-x-1">
-                      {yell.reactions.map((reaction, index) => (
-                        <span key={index} className="text-sm bg-gray-100 px-2 py-1 rounded">
-                          {reaction}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))
-        ) : (
-          <div className="text-center py-12 text-gray-500">
-            まだエールがありません。最初のエールを送ってみましょう！
-          </div>
-        )}
+        {/* ライム系 */}
+        <div className="absolute w-44 h-44 bg-lime-300 rounded-full blur-2xl opacity-50" 
+             style={{ top: '35%', left: '5%' }}></div>
+        
+        {/* スカイブルー系 */}
+        <div className="absolute w-52 h-52 bg-sky-300 rounded-full blur-2xl opacity-50" 
+             style={{ bottom: '25%', right: '12%' }}></div>
+        
+        {/* ピンク系 */}
+        <div className="absolute w-40 h-40 bg-pink-300 rounded-full blur-2xl opacity-40" 
+             style={{ top: '60%', left: '40%' }}></div>
+        
+        {/* 紫系 */}
+        <div className="absolute w-36 h-36 bg-purple-300 rounded-full blur-2xl opacity-40" 
+             style={{ bottom: '10%', left: '25%' }}></div>
       </div>
 
-      {/* エールの効果 */}
-      <Card className="mt-8 bg-green-50">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">✨ エールの効果</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4">
-            <div className="text-3xl mb-2">🤝</div>
-            <div className="font-medium text-gray-900">コミュニティ形成</div>
-            <div className="text-sm text-gray-600">仲間とのつながりを深める</div>
-          </div>
-          <div className="text-center p-4">
-            <div className="text-3xl mb-2">💪</div>
-            <div className="font-medium text-gray-900">モチベーション向上</div>
-            <div className="text-sm text-gray-600">学習への意欲を高める</div>
-          </div>
-          <div className="text-center p-4">
-            <div className="text-3xl mb-2">🎯</div>
-            <div className="font-medium text-gray-900">継続力アップ</div>
-            <div className="text-sm text-gray-600">学習習慣の定着をサポート</div>
+      <div className="relative z-10 max-w-md mx-auto min-h-screen">
+        {/* タブナビゲーション */}
+        <div className="pt-6 px-6 pb-4">
+          <div className="bg-[#CCCCCC] rounded-full px-1 py-1.5 flex relative shadow-[inset_0px_4px_4px_rgba(0,0,0,0.25)] gap-1.5 w-[340px] mx-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`w-[160px] h-[25px] flex items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 relative z-10 ${
+                  activeTab === tab
+                    ? 'bg-black text-white shadow-lg'
+                    : 'text-[#9D9C9C] bg-[#E5E5E5]'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
         </div>
-      </Card>
+
+        {/* コンテンツ */}
+        <div className="px-4 pb-4">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4">
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-10">
+                <p className="text-red-500 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                >
+                  再読み込み
+                </button>
+              </div>
+            ) : projectsData?.projects?.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-gray-500">
+                  {activeTab}のプロジェクトはありません
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {projectsData?.projects?.map((project) => (
+                  <Link
+                    key={project.id}
+                    href={`/yell/${project.id}`}
+                    className="block"
+                  >
+                    <div className="bg-white/95 border border-gray-200/50 rounded-xl p-4 hover:shadow-md transition-shadow">
+                    {/* プロジェクトヘッダー */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-sm text-gray-900 mb-1">
+                          {project.title}
+                        </h3>
+                        <p className="text-xs text-gray-600 mb-2">
+                          カテゴリー: {project.category}
+                        </p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        project.status === '募集中' 
+                          ? 'bg-green-100 text-green-800'
+                          : project.status === '実行中'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {project.status}
+                      </span>
+                    </div>
+
+                    {/* オーナー情報 */}
+                    <div className="flex items-center mb-3 text-xs text-gray-600">
+                      <div className="w-6 h-6 rounded-full bg-gray-300 mr-2"></div>
+                      <span>{project.owner.name}</span>
+                      <span className="mx-1">・</span>
+                      <span>{project.owner.school} {project.owner.grade}</span>
+                    </div>
+
+                    {/* 進捗バー */}
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs text-gray-600 mb-1">
+                        <span>¥{project.currentAmount.toLocaleString()}</span>
+                        <span>目標: ¥{project.targetAmount.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-cyan-300 to-lime-300 h-2 rounded-full transition-all"
+                          style={{ width: `${Math.min(100, project.progressPercent)}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-center text-xs text-gray-600 mt-1">
+                        {project.progressPercent}%
+                      </div>
+                    </div>
+
+                    {/* 統計情報 */}
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+                        </svg>
+                        支援者 {project.supportersCount}人
+                      </span>
+                      <span className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+                        </svg>
+                        残り{project.daysLeft}日
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+              {/* プロジェクト総数表示 */}
+              {projectsData?.totalCount > 0 && (
+                <div className="text-center text-xs text-gray-500 mt-4">
+                  全{projectsData.totalCount}件のプロジェクト
+                </div>
+              )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
