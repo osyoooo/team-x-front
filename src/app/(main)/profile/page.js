@@ -361,14 +361,19 @@ export default function ProfilePage() {
           <ChallengeRanking />
         </div>
 
-        {/* Teammates info (moved to bottom) */}
-        <div className="flex justify-center mb-8">
-          <div className="max-w-80">
+        {/* Teammates info (moved to bottom) with icon */}
+        <div className="flex items-center justify-center gap-4 mb-8 px-4">
+          <div className="flex-1">
             <ProfileBubble 
               message={`同じ夢・目標の仲間は${profile?.total_participants || teammates}人！ともに頑張ろう！`} 
               position="center"
             />
           </div>
+          <img 
+            src="/yurei.png" 
+            alt="仲間アイコン" 
+            className="w-16 h-16 object-contain flex-shrink-0"
+          />
         </div>
 
         {/* Debug button (if needed) */}
