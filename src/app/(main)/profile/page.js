@@ -38,7 +38,6 @@ export default function ProfilePage() {
     values: []
   });
   const [newValue, setNewValue] = useState('');
-  const [statsPeriod, setStatsPeriod] = useState('month');
   
   // プロキシAPIテスト用の状態
   const [showDebugInfo, setShowDebugInfo] = useState(false);
@@ -133,41 +132,32 @@ export default function ProfilePage() {
       setLoading('profile', true);
       
       try {
-        // デバッグ用：プロキシAPI直接テストを並行実行
+        // デバッグ用：プロキシAPI直接テスト
         if (showDebugInfo) {
           console.log(`🔄 [Profile Debug] Starting detailed API tests...`);
           
-          // プロキシAPIを直接テスト
+          // メインのプロフィールAPIのみテスト
           await Promise.allSettled([
-            testProxyAPI('profile', 'GET', null, 'profile_test'),
-            testProxyAPI('profile?action=stats&period=' + statsPeriod, 'GET', null, 'stats_test'),
-            testProxyAPI('profile?action=achievements', 'GET', null, 'achievements_test')
+            testProxyAPI('profile', 'GET', null, 'profile_test')
           ]);
         }
 
-        // 通常のAPIコール
-        const [profileResponse, statsResponse, achievementsResponse] = await Promise.all([
-          profileAPI.getProfile(),
-          profileAPI.getStats(statsPeriod),
-          profileAPI.getAchievements()
-        ]);
+        // プロフィール情報取得（必要なデータはすべて含まれている）
+        const profileResponse = await profileAPI.getProfile();
 
         if (profileResponse.success) {
           setProfile(profileResponse.data);
           setEditForm({
-            nickname: profileResponse.data.nickname || '',
-            dream: profileResponse.data.dream || '',
-            bio: profileResponse.data.bio || '',
+            nickname: profileResponse.data.user?.nickname || profileResponse.data.nickname || '',
+            dream: profileResponse.data.user?.headline || profileResponse.data.dream || '',
+            bio: profileResponse.data.user?.bio || profileResponse.data.bio || '',
             values: profileResponse.data.values || []
           });
-        }
-
-        if (statsResponse.success) {
-          setStats(statsResponse.data);
-        }
-
-        if (achievementsResponse.success) {
-          setAchievements(achievementsResponse.data);
+          
+          // APIレスポンスにランキングなどの情報が含まれているため、これらも設定
+          if (profileResponse.data.ranking) {
+            setAchievements(profileResponse.data.ranking);
+          }
         }
         
       } catch (error) {
@@ -186,7 +176,7 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [isAuthenticated, statsPeriod, showDebugInfo, setProfile, setStats, setAchievements, setLoading, addNotification]);
+  }, [isAuthenticated, showDebugInfo, setProfile, setStats, setAchievements, setLoading, addNotification]);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -442,24 +432,12 @@ export default function ProfilePage() {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 gap-4 mb-6">
                 <button
                   onClick={() => testProxyAPI('profile', 'GET', null, 'manual_profile')}
                   className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
                 >
                   🔄 Profile API Test
-                </button>
-                <button
-                  onClick={() => testProxyAPI('profile?action=stats&period=' + statsPeriod, 'GET', null, 'manual_stats')}
-                  className="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-                >
-                  📊 Stats API Test
-                </button>
-                <button
-                  onClick={() => testProxyAPI('profile?action=achievements', 'GET', null, 'manual_achievements')}
-                  className="px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
-                >
-                  🏆 Achievements API Test
                 </button>
               </div>
 
