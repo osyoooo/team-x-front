@@ -99,13 +99,13 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
     });
     ctx.closePath();
     
-    // 線形グラデーション（水色から黄緑）
+    // 線形グラデーション（水色から黄緑）- より薄く
     const gradient = ctx.createLinearGradient(
       centerX, centerY - maxRadius, 
       centerX, centerY + maxRadius
     );
-    gradient.addColorStop(0, 'rgba(116, 251, 252, 1)');  // 水色
-    gradient.addColorStop(1, 'rgba(240, 254, 83, 1)');   // 黄緑
+    gradient.addColorStop(0, 'rgba(116, 251, 252, 0.7)');  // 水色 - 70%透明度
+    gradient.addColorStop(1, 'rgba(240, 254, 83, 0.7)');   // 黄緑 - 70%透明度
     
     ctx.fillStyle = gradient;
     ctx.fill();
