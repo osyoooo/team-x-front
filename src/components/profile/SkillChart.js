@@ -129,9 +129,9 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
     <div className="relative w-full max-w-[358px] h-[199px]">
       {/* 信頼スコアカード（左上） */}
       <div className="absolute top-[10px] left-[18px] z-10">
-        <div className="bg-white/90 backdrop-blur-sm border border-white rounded-lg p-3 text-center shadow-lg w-20 h-[73px]">
-          <div className="text-xs font-bold text-black mb-1">信頼スコア</div>
-          <div className="text-2xl font-bold text-black">{trustScore}</div>
+        <div className="bg-transparent border border-white rounded-lg p-3 text-center shadow-lg w-20 h-[73px]">
+          <div className="text-[10px] font-bold text-white mb-1">信頼スコア</div>
+          <div className="text-xl font-bold text-white">{trustScore}</div>
         </div>
       </div>
 

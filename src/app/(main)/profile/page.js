@@ -336,7 +336,7 @@ export default function ProfilePage() {
         <div className="flex justify-center mb-10">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-xl blur-sm"></div>
-            <div className="relative bg-gradient-to-br from-white/40 to-transparent backdrop-blur-sm rounded-xl p-6 shadow-xl">
+            <div className="relative bg-black/60 backdrop-blur-sm rounded-xl p-6 shadow-xl">
               <SkillChart skills={skillData} trustScore={trustScore} />
             </div>
           </div>
