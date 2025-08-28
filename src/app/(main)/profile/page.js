@@ -305,8 +305,35 @@ export default function ProfilePage() {
       {/* Content */}
       <div className="relative z-10 max-w-sm mx-auto px-4 pb-20">
         
-        {/* Central Skill Chart */}
-        <div className="flex justify-center pt-16 mb-6">
+        {/* Profile Information (moved to top) */}
+        <div className="pt-16 mb-8">
+          {/* Profile image and dream message */}
+          <div className="flex items-start mb-6">
+            <div className="flex flex-col items-center mr-4">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-white shadow-lg flex-shrink-0 mb-3">
+                <img 
+                  src="/32559793_s.jpg" 
+                  alt={profile?.user?.nickname || profile?.nickname || '拓叶'} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Name directly under image */}
+              <span className="text-base font-bold text-black tracking-wider text-center">
+                {profile?.user?.nickname || profile?.nickname || '拓叶'}
+              </span>
+            </div>
+            <div className="flex-1 mt-2">
+              <ProfileBubble 
+                message={profile?.user?.headline || profile?.dream || 'プログラミングで地域課題を解決したい'} 
+                position="left"
+                className="mb-2"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Central Skill Chart (moved below profile) */}
+        <div className="flex justify-center mb-10">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-xl blur-sm"></div>
             <div className="relative bg-gradient-to-br from-white/40 to-transparent backdrop-blur-sm rounded-xl p-6 shadow-xl">
@@ -315,52 +342,18 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Profile Information */}
-        <div className="mb-12">
-          {/* Profile image and dream message */}
-          <div className="flex items-start mb-6">
-            <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white shadow-lg flex-shrink-0">
-              {profile?.profileImage ? (
-                <img 
-                  src={profile.profileImage} 
-                  alt={profile?.nickname || 'プロフィール'} 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
-                  {profile?.nickname?.charAt(0) || 'U'}
-                </div>
-              )}
-            </div>
-            <div className="flex-1 mt-1">
-              <ProfileBubble 
-                message={profile?.dream || 'プログラミングで地域課題を解決したい'} 
-                position="left"
-                className="mb-2"
-              />
-            </div>
-          </div>
-          
-          {/* Name */}
-          <div className="ml-20 mb-8">
-            <span className="text-sm font-bold text-black tracking-wider">
-              {profile?.nickname || '拓叶'}
-            </span>
-          </div>
-          
-          {/* Teammates info */}
-          <div className="flex justify-end pr-2 mt-6">
-            <div className="max-w-72">
-              <ProfileBubble 
-                message={`同じ夢・目標の仲間は${teammates}人！ともに頑張ろう！`} 
-                position="right"
-              />
-            </div>
+        {/* Teammates info */}
+        <div className="flex justify-center mb-8">
+          <div className="max-w-80">
+            <ProfileBubble 
+              message={`同じ夢・目標の仲間は${profile?.total_participants || teammates}人！ともに頑張ろう！`} 
+              position="center"
+            />
           </div>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-10">
+        <div className="mb-8">
           <h2 className="text-sm font-bold text-black mb-4">未来ステップ 進行状況</h2>
           <ProgressSteps />
         </div>
@@ -376,16 +369,6 @@ export default function ProfilePage() {
         <div className="mb-8">
           <h2 className="text-sm font-bold text-black mb-4">同じ夢の仲間の挑戦ランキングTOP3</h2>
           <ChallengeRanking />
-        </div>
-
-        {/* Bottom teammates message */}
-        <div className="flex justify-center mb-8">
-          <div className="max-w-80">
-            <ProfileBubble 
-              message={`同じ夢・目標の仲間は${teammates}人！ともに頑張ろう！`} 
-              position="left"
-            />
-          </div>
         </div>
 
         {/* Debug button (if needed) */}
