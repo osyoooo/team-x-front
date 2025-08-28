@@ -59,8 +59,8 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
     ];
 
     // 三角形のパスを構築
-    // スキル値の最大値を動的に計算（最低300に設定）
-    const maxSkillValue = Math.max(300, Math.max(...skillData.map(s => s.value)) * 1.2);
+    // 最大値を500に固定してレーダーチャートとして正規化
+    const maxSkillValue = 500;
     
     const trianglePoints = skillData.map(skill => {
       const radius = (skill.value / maxSkillValue) * maxRadius;
@@ -71,10 +71,10 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
       };
     });
 
-    // グレーの三角形（背景）を描画
+    // 最大値（500）のレーダーチャート（背景）を描画
     ctx.beginPath();
     skillData.forEach((skill, index) => {
-      const radius = maxRadius * 0.5; // 背景は50%のサイズ
+      const radius = maxRadius; // 最大値の場合は最大半径
       const x = centerX + Math.cos(skill.angle) * radius;
       const y = centerY + Math.sin(skill.angle) * radius;
       
@@ -85,7 +85,7 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
       }
     });
     ctx.closePath();
-    ctx.fillStyle = 'rgba(204, 204, 204, 0.48)';
+    ctx.fillStyle = 'rgba(204, 204, 204, 0.3)';
     ctx.fill();
 
     // メインの三角形を描画（グラデーション）
@@ -99,13 +99,13 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
     });
     ctx.closePath();
     
-    // 線形グラデーション（水色から黄緑）
+    // 線形グラデーション（水色から黄緑）- より薄く
     const gradient = ctx.createLinearGradient(
       centerX, centerY - maxRadius, 
       centerX, centerY + maxRadius
     );
-    gradient.addColorStop(0, 'rgba(116, 251, 252, 1)');  // 水色
-    gradient.addColorStop(1, 'rgba(240, 254, 83, 1)');   // 黄緑
+    gradient.addColorStop(0, 'rgba(116, 251, 252, 0.7)');  // 水色 - 70%透明度
+    gradient.addColorStop(1, 'rgba(240, 254, 83, 0.7)');   // 黄緑 - 70%透明度
     
     ctx.fillStyle = gradient;
     ctx.fill();
@@ -129,9 +129,9 @@ export default function SkillChart({ skills = {}, trustScore = 125 }) {
     <div className="relative w-full max-w-[358px] h-[199px]">
       {/* 信頼スコアカード（左上） */}
       <div className="absolute top-[10px] left-[18px] z-10">
-        <div className="bg-white/90 backdrop-blur-sm border border-white rounded-lg p-3 text-center shadow-lg w-20 h-[73px]">
-          <div className="text-xs font-bold text-black mb-1">信頼スコア</div>
-          <div className="text-2xl font-bold text-black">{trustScore}</div>
+        <div className="bg-transparent border border-white rounded-lg p-3 text-center shadow-lg w-20 h-[73px]">
+          <div className="text-[10px] font-bold text-white mb-1">信頼スコア</div>
+          <div className="text-xl font-bold text-white">{trustScore}</div>
         </div>
       </div>
 

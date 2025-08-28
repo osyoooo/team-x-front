@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/userStore';
 import { apiClient } from '@/lib/api';
@@ -86,6 +86,14 @@ export default function StudyPage() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Carousel state
+  const [currentOngoingIndex, setCurrentOngoingIndex] = useState(0);
+  const [currentRecommendedIndex, setCurrentRecommendedIndex] = useState(0);
+  
+  // Refs for scroll containers
+  const ongoingScrollRef = useRef(null);
+  const recommendedScrollRef = useRef(null);
 
   // API client function for study dashboard using existing API client
   const fetchStudyDashboard = async () => {
@@ -197,6 +205,46 @@ export default function StudyPage() {
     console.log('Button clicked for:', content.title);
   };
 
+  // Scroll handlers for carousel navigation
+  const handleOngoingScroll = () => {
+    if (ongoingScrollRef.current) {
+      const scrollLeft = ongoingScrollRef.current.scrollLeft;
+      const cardWidth = 311 + 16; // card width + gap
+      const newIndex = Math.round(scrollLeft / cardWidth);
+      setCurrentOngoingIndex(newIndex);
+    }
+  };
+
+  const handleRecommendedScroll = () => {
+    if (recommendedScrollRef.current) {
+      const scrollLeft = recommendedScrollRef.current.scrollLeft;
+      const cardWidth = 311 + 16; // card width + gap
+      const newIndex = Math.round(scrollLeft / cardWidth);
+      setCurrentRecommendedIndex(newIndex);
+    }
+  };
+
+  // Dot navigation handlers
+  const scrollToOngoingCard = (index) => {
+    if (ongoingScrollRef.current) {
+      const cardWidth = 311 + 16; // card width + gap
+      ongoingScrollRef.current.scrollTo({
+        left: index * cardWidth,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollToRecommendedCard = (index) => {
+    if (recommendedScrollRef.current) {
+      const cardWidth = 311 + 16; // card width + gap
+      recommendedScrollRef.current.scrollTo({
+        left: index * cardWidth,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -300,9 +348,18 @@ export default function StudyPage() {
       {/* 進行中の学習セクション */}
       <div className="relative z-10 px-4 mb-6">
         <h2 className="text-sm font-bold text-black mb-4">進行中の学習</h2>
-        <div className="flex gap-4 overflow-x-auto">
+        <div 
+          ref={ongoingScrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+          onScroll={handleOngoingScroll}
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
           {data.ongoing.map((content) => (
-            <div key={content.id} className="min-w-[311px]">
+            <div 
+              key={content.id} 
+              className="min-w-[311px] flex-shrink-0"
+              style={{ scrollSnapAlign: 'start' }}
+            >
               <LearningContentCard
                 content={{
                   ...content,
@@ -319,9 +376,15 @@ export default function StudyPage() {
         
         {/* ページインジケーター */}
         <div className="flex justify-center mt-4 gap-2">
-          <div className="w-2 h-2 bg-black rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
+          {data.ongoing.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToOngoingCard(index)}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                index === currentOngoingIndex ? 'bg-black' : 'bg-gray-300'
+              }`}
+            />
+          ))}
         </div>
       </div>
 
@@ -333,9 +396,18 @@ export default function StudyPage() {
             完了済みの学習 →
           </button>
         </div>
-        <div className="flex gap-4 overflow-x-auto">
+        <div 
+          ref={recommendedScrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+          onScroll={handleRecommendedScroll}
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
           {data.recommended.map((content) => (
-            <div key={content.id} className="min-w-[311px]">
+            <div 
+              key={content.id} 
+              className="min-w-[311px] flex-shrink-0"
+              style={{ scrollSnapAlign: 'start' }}
+            >
               <LearningContentCard
                 content={{
                   ...content,
@@ -352,9 +424,15 @@ export default function StudyPage() {
         
         {/* ページインジケーター */}
         <div className="flex justify-center mt-4 gap-2">
-          <div className="w-2 h-2 bg-black rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
+          {data.recommended.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToRecommendedCard(index)}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                index === currentRecommendedIndex ? 'bg-black' : 'bg-gray-300'
+              }`}
+            />
+          ))}
         </div>
       </div>
     </div>

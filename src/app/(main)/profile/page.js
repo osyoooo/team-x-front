@@ -38,7 +38,6 @@ export default function ProfilePage() {
     values: []
   });
   const [newValue, setNewValue] = useState('');
-  const [statsPeriod, setStatsPeriod] = useState('month');
   
   // プロキシAPIテスト用の状態
   const [showDebugInfo, setShowDebugInfo] = useState(false);
@@ -133,41 +132,32 @@ export default function ProfilePage() {
       setLoading('profile', true);
       
       try {
-        // デバッグ用：プロキシAPI直接テストを並行実行
+        // デバッグ用：プロキシAPI直接テスト
         if (showDebugInfo) {
           console.log(`🔄 [Profile Debug] Starting detailed API tests...`);
           
-          // プロキシAPIを直接テスト
+          // メインのプロフィールAPIのみテスト
           await Promise.allSettled([
-            testProxyAPI('profile', 'GET', null, 'profile_test'),
-            testProxyAPI('profile?action=stats&period=' + statsPeriod, 'GET', null, 'stats_test'),
-            testProxyAPI('profile?action=achievements', 'GET', null, 'achievements_test')
+            testProxyAPI('profile', 'GET', null, 'profile_test')
           ]);
         }
 
-        // 通常のAPIコール
-        const [profileResponse, statsResponse, achievementsResponse] = await Promise.all([
-          profileAPI.getProfile(),
-          profileAPI.getStats(statsPeriod),
-          profileAPI.getAchievements()
-        ]);
+        // プロフィール情報取得（必要なデータはすべて含まれている）
+        const profileResponse = await profileAPI.getProfile();
 
         if (profileResponse.success) {
           setProfile(profileResponse.data);
           setEditForm({
-            nickname: profileResponse.data.nickname || '',
-            dream: profileResponse.data.dream || '',
-            bio: profileResponse.data.bio || '',
+            nickname: profileResponse.data.user?.nickname || profileResponse.data.nickname || '',
+            dream: profileResponse.data.user?.headline || profileResponse.data.dream || '',
+            bio: profileResponse.data.user?.bio || profileResponse.data.bio || '',
             values: profileResponse.data.values || []
           });
-        }
-
-        if (statsResponse.success) {
-          setStats(statsResponse.data);
-        }
-
-        if (achievementsResponse.success) {
-          setAchievements(achievementsResponse.data);
+          
+          // APIレスポンスにランキングなどの情報が含まれているため、これらも設定
+          if (profileResponse.data.ranking) {
+            setAchievements(profileResponse.data.ranking);
+          }
         }
         
       } catch (error) {
@@ -186,7 +176,7 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [isAuthenticated, statsPeriod, showDebugInfo, setProfile, setStats, setAchievements, setLoading, addNotification]);
+  }, [isAuthenticated, showDebugInfo, setProfile, setStats, setAchievements, setLoading, addNotification]);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -315,62 +305,45 @@ export default function ProfilePage() {
       {/* Content */}
       <div className="relative z-10 max-w-sm mx-auto px-4 pb-20">
         
-        {/* Central Skill Chart */}
-        <div className="flex justify-center pt-16 mb-6">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-xl blur-sm"></div>
-            <div className="relative bg-gradient-to-br from-white/40 to-transparent backdrop-blur-sm rounded-xl p-6 shadow-xl">
-              <SkillChart skills={skillData} trustScore={trustScore} />
-            </div>
-          </div>
-        </div>
-
-        {/* Profile Information */}
-        <div className="mb-12">
+        {/* Profile Information (moved to top) */}
+        <div className="pt-16 mb-8">
           {/* Profile image and dream message */}
           <div className="flex items-start mb-6">
-            <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white shadow-lg flex-shrink-0">
-              {profile?.profileImage ? (
+            <div className="flex flex-col items-center mr-4">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-white shadow-lg flex-shrink-0 mb-3">
                 <img 
-                  src={profile.profileImage} 
-                  alt={profile?.nickname || 'プロフィール'} 
+                  src="/32559793_s.jpg" 
+                  alt={profile?.user?.nickname || profile?.nickname || '拓叶'} 
                   className="w-full h-full object-cover"
                 />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
-                  {profile?.nickname?.charAt(0) || 'U'}
-                </div>
-              )}
+              </div>
+              {/* Name directly under image */}
+              <span className="text-base font-bold text-black tracking-wider text-center">
+                {profile?.user?.nickname || profile?.nickname || '拓叶'}
+              </span>
             </div>
-            <div className="flex-1 mt-1">
+            <div className="flex-1 mt-2">
               <ProfileBubble 
-                message={profile?.dream || 'プログラミングで地域課題を解決したい'} 
+                message={profile?.user?.headline || profile?.dream || 'プログラミングで地域課題を解決したい'} 
                 position="left"
                 className="mb-2"
               />
             </div>
           </div>
-          
-          {/* Name */}
-          <div className="ml-20 mb-8">
-            <span className="text-sm font-bold text-black tracking-wider">
-              {profile?.nickname || '拓叶'}
-            </span>
-          </div>
-          
-          {/* Teammates info */}
-          <div className="flex justify-end pr-2 mt-6">
-            <div className="max-w-72">
-              <ProfileBubble 
-                message={`同じ夢・目標の仲間は${teammates}人！ともに頑張ろう！`} 
-                position="right"
-              />
+        </div>
+
+        {/* Central Skill Chart (moved below profile) */}
+        <div className="flex justify-center mb-10">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-xl blur-sm"></div>
+            <div className="relative bg-black/60 backdrop-blur-sm rounded-xl p-6 shadow-xl">
+              <SkillChart skills={skillData} trustScore={trustScore} />
             </div>
           </div>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-10">
+        <div className="mb-8">
           <h2 className="text-sm font-bold text-black mb-4">未来ステップ 進行状況</h2>
           <ProgressSteps />
         </div>
@@ -388,14 +361,19 @@ export default function ProfilePage() {
           <ChallengeRanking />
         </div>
 
-        {/* Bottom teammates message */}
-        <div className="flex justify-center mb-8">
-          <div className="max-w-80">
+        {/* Teammates info (moved to bottom) with icon */}
+        <div className="flex items-center justify-center gap-4 mb-8 px-4">
+          <div className="flex-1">
             <ProfileBubble 
-              message={`同じ夢・目標の仲間は${teammates}人！ともに頑張ろう！`} 
-              position="left"
+              message={`同じ夢・目標の仲間は${profile?.total_participants || teammates}人！ともに頑張ろう！`} 
+              position="center"
             />
           </div>
+          <img 
+            src="/yurei.png" 
+            alt="仲間アイコン" 
+            className="w-16 h-16 object-contain flex-shrink-0"
+          />
         </div>
 
         {/* Debug button (if needed) */}
@@ -442,24 +420,12 @@ export default function ProfilePage() {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 gap-4 mb-6">
                 <button
                   onClick={() => testProxyAPI('profile', 'GET', null, 'manual_profile')}
                   className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
                 >
                   🔄 Profile API Test
-                </button>
-                <button
-                  onClick={() => testProxyAPI('profile?action=stats&period=' + statsPeriod, 'GET', null, 'manual_stats')}
-                  className="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-                >
-                  📊 Stats API Test
-                </button>
-                <button
-                  onClick={() => testProxyAPI('profile?action=achievements', 'GET', null, 'manual_achievements')}
-                  className="px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
-                >
-                  🏆 Achievements API Test
                 </button>
               </div>
 
