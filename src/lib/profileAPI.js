@@ -91,7 +91,11 @@ export const profileAPI = {
   async getProfile(userId = 'me') {
     try {
       const response = await proxyFetch('/api/proxy/profile');
-      return response;
+      // APIレスポンスを統一形式でラップ
+      return {
+        success: true,
+        data: response
+      };
     } catch (error) {
       console.warn('プロキシAPI経由でのプロフィール取得に失敗、モックデータを使用:', error);
       // デモ用のモックレスポンス

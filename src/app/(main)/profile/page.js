@@ -237,14 +237,14 @@ export default function ProfilePage() {
     }));
   };
 
-  // スキルデータの変換
+  // スキルデータの変換（APIから取得した実際のデータ構造に基づく）
   const skillData = {
-    discover: profile?.stats?.skills?.find(s => s.name === 'みつける力')?.value || 25,
-    create: profile?.stats?.skills?.find(s => s.name === 'カタチにする力')?.value || 27,
-    deliver: profile?.stats?.skills?.find(s => s.name === 'とどける力')?.value || 73
+    discover: profile?.skill_scores?.find || 25,     // みつける力
+    create: profile?.skill_scores?.shape || 27,     // カタチにする力  
+    deliver: profile?.skill_scores?.deliver || 73   // とどける力
   };
 
-  const trustScore = profile?.stats?.trustScore || 125;
+  const trustScore = profile?.skill_scores?.trust || 125;
   const teammates = profile?.teammates || 128;
 
   const isLoading = useUIStore((state) => state.loading.profile);
